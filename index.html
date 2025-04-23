@@ -1,194 +1,56 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Inicio - Hotel Hidden</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
-  <style>
-    body {
-      background-color: #f4f4f4;
-      padding-top: 56px;
-    }
-
-    .navbar-custom {
-      background-color: #d6b3f0;
-      color: white;
-    }
-
-    .sidebar {
-      position: fixed;
-      top: 56px;
-      left: 0;
-      width: 220px;
-      height: 100vh;
-      background-color: rgba(217,191,240, 0.7);
-      backdrop-filter: blur(10px);
-      padding: 1.5rem 1rem;
-      transition: transform 0.3s ease;
-      z-index: 1030;
-      overflow-y: auto;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .sidebar.hidden {
-      transform: translateX(-100%);
-    }
-
-    .sidebar .nav-link {
-      color: #fff;
-      font-weight: 500;
-      transition: background-color 0.2s;
-    }
-
-    .sidebar .nav-link:hover {
-      background-color: #d3abf7;
-      border-radius: 0.5rem;
-    }
-
-    .main-content {
-      margin-left: 220px;
-      transition: margin-left 0.3s ease;
-    }
-
-    @media (max-width: 768px) {
-      .main-content {
-        margin-left: 0;
-      }
-    }
-
-    .hero-section {
-      background-image: url('https://img.freepik.com/foto-gratis/habitacion-hotel-lujo-interior_1232-650.jpg?w=1380');
-      background-size: cover;
-      background-position: center;
-      height: 70vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      text-align: center;
-      position: relative;
-    }
-
-    .hero-overlay {
-      background-color: rgba(0, 0, 0, 0.5);
-      padding: 2rem;
-      border-radius: 1rem;
-    }
-
-    .features-section {
-      padding: 4rem 0;
-    }
-
-    .feature-card {
-      border: none;
-      border-radius: 1rem;
-      background-color: white;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
-      text-align: center;
-      padding: 2rem 1rem;
-    }
-
-    .feature-card i {
-      font-size: 2rem;
-      color: #b87fe4;
-      margin-bottom: 1rem;
-    }
-
-    .navbar-custom .ms-auto {
-      display: flex;
-      align-items: center;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inicio | Hotel Hidden</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="./templates/index/index.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
+
 <body>
-
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-custom fixed-top px-3">
-    <button class="btn btn-outline-light me-3" id="menuToggle" onclick="toggleSidebar()">
-      <i class="bi bi-list"></i>
-    </button>
-    <a class="navbar-brand ms-auto d-flex align-items-center" href="#">
-      <img src="https://img.freepik.com/vector-gratis/identidad-corporativa-editable-negocio-vector-logotipo-hotel-texto-oculto-hotel_53876-111556.jpg?w=740" alt="Logo" width="40" class="me-2 rounded-circle" />
-      <span class="fw-bold text-white">Hotel Hidden</span>
-    </a>
-  </nav>
-
-  <!-- Sidebar -->
-  <div id="sidebar" class="sidebar">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h5 class="fw-bold mb-0">Menú</h5>
-    </div>
-    <hr />
-    <nav class="nav flex-column">
-      <a class="nav-link mb-2" href="#"><i class="bi bi-house-door me-2"></i>Inicio</a>
-      <a class="nav-link mb-2" href="#"><i class="bi bi-journal-text me-2"></i>Reservas</a>
-      <a class="nav-link mb-2" href="#"><i class="bi bi-people me-2"></i>Clientes</a>
-      <a class="nav-link mb-2" href="#"><i class="bi bi-person-gear me-2"></i>Usuarios</a>
-      <a class="nav-link" href="#"><i class="bi bi-bar-chart me-2"></i>Reportes</a>
+    <!-- Barra de navegación superior -->
+    <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+        <div class="container-fluid">
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
+            <a class="navbar-brand" href="#">HotelApp</a>
+            <!-- Botón de inicio de sesión en la parte derecha -->
+            <div class="ms-auto">
+                <a href="#" class="btn btn-light">Iniciar Sesión</a>
+            </div>
+        </div>
     </nav>
-  </div>
 
-  <!-- Contenido principal -->
-  <div id="mainContent" class="main-content">
+    <!-- Barra lateral -->
+    <div class="sidebar" id="sidebar">
+        <a href="#"><i class="bi bi-house-door"></i> Inicio</a>
+        <a href="#"><i class="bi bi-calendar-check"></i> Reservas</a>
+        <a href="#"><i class="bi bi-door-closed"></i> Habitaciones</a>
+        <a href="#"><i class="bi bi-people"></i> Clientes</a>
+        <a href="#"><i class="bi bi-person-gear"></i> Usuarios</a>
+    </div>
 
-    <!-- Hero section -->
-    <section class="hero-section">
-      <div class="hero-overlay">
-        <h1 class="display-4 fw-bold">Bienvenido a Hotel Hidden</h1>
-        <p class="lead">Una experiencia de lujo para tu descanso y comodidad</p>
-        <a href="#" class="btn btn-light mt-3">Reservar ahora</a>
-      </div>
-    </section>
+    <!-- Contenido principal -->
+    <div class="main-content" id="main-content">
+        <div class="container my-5">
+            <!-- Sección de bienvenida -->
+            <div class="welcome-section text-center mb-5">
+                <h1 class="fw-bold mb-3">Bienvenido a Hotel Hidden</h1>
+                <p class="fs-5">Tu espacio de gestión para reservas, usuarios y más.</p>
+                <div class="mt-4">
+                    <a href="#" class="btn btn-custom me-2">Reservar Ahora</a>
+                    <a href="#" class="btn btn-outline-secondary">Ver Reportes</a>
+                </div>
+            </div>
 
-    <!-- Features -->
-    <section class="features-section container">
-      <div class="text-center mb-5">
-        <h2 class="fw-bold">¿Qué ofrecemos?</h2>
-        <p class="text-muted">Conoce nuestros principales servicios</p>
-      </div>
-      <div class="row">
-        <div class="col-md-4 mb-4">
-          <div class="feature-card">
-            <i class="bi bi-wifi"></i>
-            <h5>Wi-Fi Gratis</h5>
-            <p>Conexión rápida en todas las áreas del hotel.</p>
-          </div>
-        </div>
-        <div class="col-md-4 mb-4">
-          <div class="feature-card">
-            <i class="bi bi-cup-hot"></i>
-            <h5>Desayuno Incluido</h5>
-            <p>Disfruta de un desayuno delicioso todas las mañanas.</p>
-          </div>
-        </div>
-        <div class="col-md-4 mb-4">
-          <div class="feature-card">
-            <i class="bi bi-geo-alt"></i>
-            <h5>Ubicación Céntrica</h5>
-            <p>A pocos pasos de los mejores lugares turísticos.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    function toggleSidebar() {
-      const sidebar = document.getElementById("sidebar");
-      const menuToggle = document.getElementById("menuToggle");
-
-      sidebar.classList.toggle("hidden");
-
-      if (sidebar.classList.contains("hidden")) {
-        menuToggle.innerHTML = `<i class="bi bi-list"></i>`;
-      } else {
-        menuToggle.innerHTML = `<i class="bi bi-x-lg"></i>`;
-      }
-    }
-  </script>
+            <!-- Scripts -->
+            <script src="./templates/index/index.js"></script>
 </body>
+
 </html>
