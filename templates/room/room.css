@@ -1,0 +1,94 @@
+body {
+    background-color: #f4f4f4;
+}
+
+.navbar-custom {
+    background-color: #8e44ad;
+}
+
+.navbar-custom .navbar-brand,
+.navbar-custom .nav-link,
+.navbar-custom .navbar-toggler {
+    color: #fff;
+}
+
+.sidebar {
+    height: 100vh;
+    background-color: #343a40;
+    color: white;
+    padding-top: 60px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    overflow-y: auto;
+    transition: all 0.3s;
+}
+
+.sidebar a {
+    color: white;
+    padding: 15px;
+    display: block;
+    text-decoration: none;
+}
+
+.sidebar a:hover {
+    background-color: #495057;
+}
+
+.sidebar-collapsed {
+    margin-left: 0 !important;
+}
+
+.sidebar-hidden {
+    transform: translateX(-100%);
+}
+
+.main-content {
+    margin-left: 250px;
+    padding: 20px;
+    transition: all 0.3s;
+}
+
+.main-collapsed {
+    margin-left: 0 !important;
+}
+
+.btn-toggle-sidebar {
+    border: none;
+    background: none;
+    font-size: 1.5rem;
+    color: white;
+    margin-right: 15px;
+}
+
+.card-custom {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-custom:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.btn-custom {
+    background-color: #e2c8f5;
+    color: #4b4b4b;
+    font-weight: 500;
+}
+
+.btn-custom:hover {
+    background-color: #d1aef0;
+}
+
+.modal-header {
+    background-color: #d6b3f0;
+    color: white;
+}
+
+.modal-title {
+    font-weight: bold;
+}
