@@ -1,17 +1,10 @@
-function toggleSidebar() {
-    const sidebar = document.getElementById("sidebar");
-    const mainContent = document.getElementById("main-content");
-    sidebar.classList.toggle("sidebar-hidden");
-    mainContent.classList.toggle("main-collapsed");
-}
-
 let rooms = [];
 let roomTypes = [];
 let roomStatuses = [];
 
 async function fetchData() {
     try {
-        const response = await axios.get('http://localhost:8000/api/room');
+        const response = await axios.get('https://app-reservation-hotel-web.onrender.com/api/room');
         rooms = response.data.rooms;
         roomTypes = response.data.room_types;
         roomStatuses = response.data.room_statuses;
@@ -23,6 +16,13 @@ async function fetchData() {
     } catch (error) {
         console.error("Error cargando datos:", error);
     }
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const mainContent = document.getElementById("main-content");
+    sidebar.classList.toggle("sidebar-hidden");
+    mainContent.classList.toggle("main-collapsed");
 }
 
 function populateSelectOptions(selectId, items, includeEmpty = false) {
@@ -107,9 +107,9 @@ document.getElementById("roomForm").addEventListener("submit", async (e) => {
 
     try {
         if (id) {
-            await axios.patch(`http://localhost:8000/api/room/${id}`, data);
+            await axios.patch(`https://app-reservation-hotel-web.onrender.com/api/room${id}`, data);
         } else {
-            await axios.post("http://localhost:8000/api/room", data);
+            await axios.post("https://app-reservation-hotel-web.onrender.com/api/room", data);
         }
         await fetchData();
         bootstrap.Modal.getInstance(document.getElementById("roomModal")).hide();
@@ -121,7 +121,7 @@ document.getElementById("roomForm").addEventListener("submit", async (e) => {
 async function deleteRoom(id) {
     if (confirm("¿Estás seguro de eliminar esta habitación?")) {
         try {
-            await axios.delete(`http://localhost:8000/api/room/${id}`);
+            await axios.delete(`https://app-reservation-hotel-web.onrender.com/api/room${id}`);
             await fetchData();
         } catch (err) {
             console.error("Error al eliminar habitación:", err);

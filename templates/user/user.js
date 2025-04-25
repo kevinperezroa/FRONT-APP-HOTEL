@@ -1,4 +1,4 @@
-const apiUrl = "http://localhost:8000/api/user";
+const apiUrl = "https://app-reservation-hotel-web.onrender.com/api/user";
 
 function toggleSidebar() {
   const sidebar = document.getElementById("sidebar");
