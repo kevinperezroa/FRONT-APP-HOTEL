@@ -12,28 +12,35 @@
 </head>
 <body>
 
-  <!-- Barra de navegación superior -->
-  <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
-    <div class="container-fluid">
-      <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
-        <i class="bi bi-list"></i>
-      </button>
-      <a class="navbar-brand" href="#">HotelApp</a>
-    </div>
+  <div class="sidebar" id="sidebar">
+    <a href="/index.html"><i class="bi bi-house-door"></i> Inicio</a>
+    <a href="/templates/reservation/reservation.html"><i class="bi bi-calendar-check"></i> Reservas</a>
+    <a href="/templates/room/room.html"><i class="bi bi-door-closed"></i> Habitaciones</a>
+    <a href="/templates/clients/clients.html"><i class="bi bi-people"></i> Clientes</a>
+    <a href="/templates/user/user.html"><i class="bi bi-person-gear"></i> Usuarios</a>
+</div>
+
+    <!-- Barra de navegación superior -->
+    <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+      <div class="container-fluid">
+          <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
+              <i class="bi bi-list"></i>
+          </button>
+          <a class="navbar-brand" href="#">HotelApp</a>
+      </div>
   </nav>
 
-    <!-- Barra lateral -->
-    <div class="sidebar" id="sidebar">
+  <div class="sidebar" id="sidebar">
       <a href="/index.html"><i class="bi bi-house-door"></i> Inicio</a>
-      <a href=""><i class="bi bi-calendar-check"></i> Reservas</a>
-      <a href="../room/room.html"><i class="bi bi-door-closed"></i> Habitaciones</a>
-      <a href="../clients/clients.html"><i class="bi bi-people"></i> Clientes</a>
-      <a href="../user/user.html"><i class="bi bi-person-gear"></i> Usuarios</a>
+      <a href="/templates/reservation/reservation.html"><i class="bi bi-calendar-check"></i> Reservas</a>
+      <a href="/templates/room/room.html"><i class="bi bi-door-closed"></i> Habitaciones</a>
+      <a href="/templates/clients/clients.html"><i class="bi bi-people"></i> Clientes</a>
+      <a href="/templates/user/user.html"><i class="bi bi-person-gear"></i> Usuarios</a>
   </div>
 
   <!-- Contenido principal -->
   <div class="main-content" id="main-content">
-    <div class="container my-5">
+      <div class="container my-5">
     <h2 class="mb-4 text-center">Gestión de Usuarios</h2>
     <div class="text-end mb-3">
       <button class="btn btn-custom" onclick="openUserModal()">+ Crear Usuario</button>

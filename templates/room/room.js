@@ -4,10 +4,15 @@ let roomStatuses = [];
 
 async function fetchData() {
     try {
-        const response = await axios.get('https://app-reservation-hotel-web.onrender.com/api/room');
-        rooms = response.data.rooms;
-        roomTypes = response.data.room_types;
-        roomStatuses = response.data.room_statuses;
+        const response = await axios.get('http://127.0.0.1:8000/api/room'); // Cambiado a /api/rooms
+        rooms = response.data; // La API de FastAPI devuelve la lista directamente
+        
+        const roomTypesResponse = await axios.get('http://127.0.0.1:8000/api/roomtypes'); // Asegúrate de tener este endpoint
+        roomTypes = roomTypesResponse.data;
+
+        const roomStatusesResponse = await axios.get('http://127.0.0.1:8000/api/roomstatus');  //Asegúrate de tener este endpoint
+        roomStatuses = roomStatusesResponse.data;
+
         populateSelectOptions("room_type_id", roomTypes);
         populateSelectOptions("room_status_id", roomStatuses);
         populateSelectOptions("filterRoomType", roomTypes, true);
@@ -28,12 +33,16 @@ function toggleSidebar() {
 function populateSelectOptions(selectId, items, includeEmpty = false) {
     const select = document.getElementById(selectId);
     select.innerHTML = includeEmpty ? `<option value="">Todos</option>` : `<option value="">Selecciona una opción</option>`;
-    items.forEach(item => {
-        const option = document.createElement("option");
-        option.value = item.id;
-        option.textContent = item.name;
-        select.appendChild(option);
-    });
+    if (items) { // Agregado esta verificación
+        items.forEach(item => {
+            const option = document.createElement("option");
+            option.value = item.id;
+            option.textContent = item.name;
+            select.appendChild(option);
+        });
+    } else {
+        console.warn(`populateSelectOptions: items es undefined para ${selectId}`);
+    }
 }
 
 function renderRooms() {
@@ -47,8 +56,8 @@ function renderRooms() {
     });
 
     filtered.forEach(room => {
-        const roomType = roomTypes.find(t => t.id === room.room_type_id)?.name || '';
-        const roomStatus = roomStatuses.find(s => s.id === room.room_status_id)?.name || '';
+        const roomType = roomTypes.find(t => t.id === room.room_type_id)?.name || 'Desconocido'; //Manejo de Undefined
+        const roomStatus = roomStatuses.find(s => s.id === room.room_status_id)?.name || 'Desconocido';//Manejo de Undefined
         const card = document.createElement("div");
         card.className = "col-md-4 mb-4";
         card.innerHTML = `
@@ -107,9 +116,9 @@ document.getElementById("roomForm").addEventListener("submit", async (e) => {
 
     try {
         if (id) {
-            await axios.patch(`https://app-reservation-hotel-web.onrender.com/api/room${id}`, data);
+            await axios.patch(`http://127.0.0.1:8000/api/room/${id}`, data); // Corregido el endpoint
         } else {
-            await axios.post("https://app-reservation-hotel-web.onrender.com/api/room", data);
+            await axios.post("http://127.0.0.1:8000/api/room", data); // Corregido el endpoint
         }
         await fetchData();
         bootstrap.Modal.getInstance(document.getElementById("roomModal")).hide();
@@ -121,7 +130,7 @@ document.getElementById("roomForm").addEventListener("submit", async (e) => {
 async function deleteRoom(id) {
     if (confirm("¿Estás seguro de eliminar esta habitación?")) {
         try {
-            await axios.delete(`https://app-reservation-hotel-web.onrender.com/api/room${id}`);
+            await axios.delete(`http://127.0.0.1:8000/api/room/${id}`); // Corregido el endpoint
             await fetchData();
         } catch (err) {
             console.error("Error al eliminar habitación:", err);
