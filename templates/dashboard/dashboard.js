@@ -4,17 +4,27 @@ function toggleSidebar() {
     sidebar.classList.toggle("sidebar-hidden");
     mainContent.classList.toggle("main-collapsed");
 }
+    function loadDashboardData() {
+      const month = document.getElementById('month').value;
+      const year = document.getElementById('year').value;
 
-function descargarPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+      axios.get(`http://127.0.0.1:8000/api/dashboard?month=${month}&year=${year}`)
+        .then(response => {
+          const data = response.data;
+          document.getElementById('total_recaudo').innerText = `$${data.total_recaudo.toFixed(2)}`;
+          document.getElementById('porcentaje_ocupacion').innerText = `${data.porcentaje_ocupacion}%`;
+          document.getElementById('promedio_dias').innerText = data.promedio_dias;
+          document.getElementById('total_clientes').innerText = data.total_clientes;
+        })
+        .catch(error => {
+          console.error("Error cargando datos del dashboard:", error);
+        });
+    }
 
-    doc.text("Estadísticas del Hotel Hidden", 20, 20);
-    doc.text("Total Recaudado este Mes: $0.00", 20, 30);
-    doc.text("Total de Clientes este Mes: 0", 20, 40);
-    doc.text("Porcentaje de Habitaciones Reservadas: 0%", 20, 50);
-    doc.text("Promedio de Días Reservados: 0 días", 20, 60);
-    doc.text("Promedio de Noches Reservadas: 0 noches", 20, 70);
+    function downloadPDF() {
+      const month = document.getElementById('month').value;
+      const year = document.getElementById('year').value;
+      window.open(`http://127.0.0.1:8000/api/dashboard/pdf?month=${month}&year=${year}`, '_blank');
+    }
 
-    doc.save("estadisticas_hotel.pdf");
-}
+    window.onload = loadDashboardData;
