@@ -4,7 +4,8 @@ let roomStatuses = [];
 
 async function fetchData() {
     try {
-        const response = await axios.get('http://127.0.0.1:8000/api/room'); // Cambiado a /api/rooms
+        // Asegurándonos de obtener siempre los datos más recientes
+        const response = await axios.get('http://127.0.0.1:8000/api/room?page=1&limit=100'); // Cambiado a /api/room para obtener siempre los datos más recientes
         rooms = response.data; // La API de FastAPI devuelve la lista directamente
         
         const roomTypesResponse = await axios.get('http://127.0.0.1:8000/api/roomtypes'); // Asegúrate de tener este endpoint
@@ -17,7 +18,7 @@ async function fetchData() {
         populateSelectOptions("room_status_id", roomStatuses);
         populateSelectOptions("filterRoomType", roomTypes, true);
         populateSelectOptions("filterRoomStatus", roomStatuses, true);
-        renderRooms();
+        renderRooms();  // Vuelve a renderizar las habitaciones después de cargar los datos
     } catch (error) {
         console.error("Error cargando datos:", error);
     }
@@ -33,7 +34,7 @@ function toggleSidebar() {
 function populateSelectOptions(selectId, items, includeEmpty = false) {
     const select = document.getElementById(selectId);
     select.innerHTML = includeEmpty ? `<option value="">Todos</option>` : `<option value="">Selecciona una opción</option>`;
-    if (items) { // Agregado esta verificación
+    if (items) {
         items.forEach(item => {
             const option = document.createElement("option");
             option.value = item.id;
@@ -56,8 +57,8 @@ function renderRooms() {
     });
 
     filtered.forEach(room => {
-        const roomType = roomTypes.find(t => t.id === room.room_type_id)?.name || 'Desconocido'; //Manejo de Undefined
-        const roomStatus = roomStatuses.find(s => s.id === room.room_status_id)?.name || 'Desconocido';//Manejo de Undefined
+        const roomType = roomTypes.find(t => t.id === room.room_type_id)?.name || 'Desconocido';
+        const roomStatus = roomStatuses.find(s => s.id === room.room_status_id)?.name || 'Desconocido';
         const card = document.createElement("div");
         card.className = "col-md-4 mb-4";
         card.innerHTML = `
@@ -116,11 +117,11 @@ document.getElementById("roomForm").addEventListener("submit", async (e) => {
 
     try {
         if (id) {
-            await axios.patch(`http://127.0.0.1:8000/api/room/${id}`, data); // Corregido el endpoint
+            await axios.patch(`http://127.0.0.1:8000/api/room/${id}`, data);
         } else {
-            await axios.post("http://127.0.0.1:8000/api/room", data); // Corregido el endpoint
+            await axios.post("http://127.0.0.1:8000/api/room", data);
         }
-        await fetchData();
+        await fetchData();  // Vuelve a cargar los datos después de guardar
         bootstrap.Modal.getInstance(document.getElementById("roomModal")).hide();
     } catch (err) {
         console.error("Error guardando habitación:", err);
@@ -130,8 +131,8 @@ document.getElementById("roomForm").addEventListener("submit", async (e) => {
 async function deleteRoom(id) {
     if (confirm("¿Estás seguro de eliminar esta habitación?")) {
         try {
-            await axios.delete(`http://127.0.0.1:8000/api/room/${id}`); // Corregido el endpoint
-            await fetchData();
+            await axios.delete(`http://127.0.0.1:8000/api/room/${id}`);
+            await fetchData();  // Recargar datos después de eliminar
         } catch (err) {
             console.error("Error al eliminar habitación:", err);
         }
