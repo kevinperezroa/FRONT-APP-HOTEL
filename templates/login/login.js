@@ -17,7 +17,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
       `;
 
       // vista a la que se dirige una vez inicia sesion
-      window.location.href = "/FRONT-APP-HOTEL/templates/dashboard/dashboard.html";
+      window.location.href = "/templates/dashboard/dashboard.html";
 
     } catch (error) {
       const errMsg = error.response?.data?.detail || "Error desconocido";
