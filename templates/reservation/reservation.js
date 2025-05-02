@@ -85,7 +85,7 @@ let rooms = [];
           <td>${client ? client.first_name + " " + client.last_name : 'Desconocido'}</td>
           <td>${room ? room.room_number : 'Desconocido'}</td>
           <td>${reservation.check_in_date}</td>
-          <td>${reservation.check_in_out}</td>
+          <td>${reservation.check_out_date}</td>
           <td>${reservation.total}</td>
           <td>${status ? status.name : 'Desconocido'}</td>
           <td>${user ? user.username : 'Desconocido'}</td>
@@ -105,7 +105,7 @@ let rooms = [];
       document.getElementById('user_id').value = '';
       document.getElementById('reservation_status_id').value = '';
       document.getElementById('check_in_date').value = '';
-      document.getElementById('check_in_out').value = '';
+      document.getElementById('check_out_date').value = '';
       document.getElementById('note').value = '';
 
       const modal = new bootstrap.Modal(document.getElementById('reservationModal'));
@@ -121,7 +121,7 @@ let rooms = [];
         document.getElementById('user_id').value = reservation.user_id;
         document.getElementById('reservation_status_id').value = reservation.reservation_status_id;
         document.getElementById('check_in_date').value = reservation.check_in_date;
-        document.getElementById('check_in_out').value = reservation.check_in_out;
+        document.getElementById('check_out_date').value = reservation.check_out_date;
         document.getElementById('note').value = reservation.note;
 
         const modal = new bootstrap.Modal(document.getElementById('reservationModal'));
@@ -159,7 +159,7 @@ let rooms = [];
       const userId = document.getElementById('user_id').value;
       const reservationStatusId = document.getElementById('reservation_status_id').value;
       const checkInDate = document.getElementById('check_in_date').value;
-      const checkInOut = document.getElementById('check_in_out').value;
+      const checkOutDate = document.getElementById('check_out_date').value;
       const note = document.getElementById('note').value;
 
       const reservationData = {
@@ -167,7 +167,7 @@ let rooms = [];
         room_id: roomId,
         reservation_status_id: reservationStatusId,
         check_in_date: checkInDate,
-        check_in_out: checkInOut,
+        check_out_date: checkOutDate,
         note: note,
         user_id: userId,
       };
