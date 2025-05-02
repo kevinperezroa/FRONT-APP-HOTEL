@@ -1,176 +1,212 @@
-const API_URL = "http://127.0.0.1:8000";
+let rooms = [];
+    let clients = [];
+    let reservationStatuses = [];
+    let reservations = [];
+    let users = [];
 
-document.addEventListener("DOMContentLoaded", () => {
-    console.log("DOM is ready!");
-    loadReservations();
-    loadSelectOptions();
-    document.getElementById("reservationForm").addEventListener("submit", saveReservation);
-});
+    async function fetchData() {
+      try {
 
-async function loadReservations() {
-    const tbody = document.getElementById("reservationTableBody");
-    if (!tbody) {
-        console.error("Error: Element with id 'reservationTableBody' not found!");
-        return;
+        const usersResponse = await axios.get('http://127.0.0.1:8000/api/user');
+        users = usersResponse.data;
+
+        const clientsResponse = await axios.get('http://127.0.0.1:8000/api/client');
+        clients = clientsResponse.data;
+
+        const roomsResponse = await axios.get('http://127.0.0.1:8000/api/room');
+        rooms = roomsResponse.data;
+
+        const statusResponse = await axios.get('http://127.0.0.1:8000/api/reservationstatus');
+        reservationStatuses = statusResponse.data;
+
+        const reservationsResponse = await axios.get('http://127.0.0.1:8000/api/reservations');
+        reservations = reservationsResponse.data;
+
+        populateTables();
+        populateSelects();
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
     }
 
-    try {
-        console.log("Fetching reservations from:", `${API_URL}/reservations`);
-        const response = await axios.get(`${API_URL}/reservations`);
-        console.log("Response status:", response.status);
-        console.log("Response data:", response.data);
+    function populateSelects() {
+      const userSelect = document.getElementById('user_id');
+      const clientSelect = document.getElementById('client_id');
+      const roomSelect = document.getElementById('room_id');
+      const statusSelect = document.getElementById('reservation_status_id');
 
-        tbody.innerHTML = "";
 
-        if (response.data && Array.isArray(response.data)) {
-            if (response.data.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='8'>No se encontraron reservas.</td></tr>";
-                return;
-            }
-            response.data.forEach(reservation => {
-                const checkInDate = new Date(reservation.check_in_date).toLocaleDateString();
-                const checkOutDate = new Date(reservation.check_in_out).toLocaleDateString();
-                const totalFormatted = (typeof reservation.total === 'number' ? reservation.total.toFixed(2) : '0.00');
+      userSelect.innerHTML = '<option value="">Seleccionar...</option>';
+      users.forEach(user => {
+        const option = document.createElement('option');  // Correct element type
+        option.value = user.id;
+        option.textContent = user.username;
+        userSelect.appendChild(option);  // Append to userSelect, not user
+      });
 
-                const row = `
-                    <tr>
-                        <td>${reservation.id}</td>
-                        <td>${reservation.client_id}</td>
-                        <td>${reservation.room_id}</td>
-                        <td>${checkInDate}</td>
-                        <td>${checkOutDate}</td>
-                        <td>$${totalFormatted}</td>
-                        <td>${reservation.reservation_status_id}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary" onclick="editReservation(${reservation.id})"><i class="bi bi-pencil-square"></i></button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteReservation(${reservation.id})"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>
-                `;
-                tbody.insertAdjacentHTML("beforeend", row);
-            });
-        } else {
-            console.warn("La API devolvió una respuesta inesperada:", response);
-            tbody.innerHTML = "<tr><td colspan='8'>Error: La API devolvió datos en un formato incorrecto.</td></tr>";
-        }
-    } catch (error) {
-        console.error("Error al cargar reservas:", error);
-        tbody.innerHTML = "<tr><td colspan='8' class='text-danger'>Error al cargar las reservas. Por favor, inténtelo de nuevo más tarde.</td></tr>";
+
+      clientSelect.innerHTML = '<option value="">Seleccionar...</option>';
+      clients.forEach(client => {
+        const option = document.createElement('option');
+        option.value = client.id;
+        option.textContent = `${client.first_name} ${client.last_name}`;
+        clientSelect.appendChild(option);
+      });
+
+      roomSelect.innerHTML = '<option value="">Seleccionar...</option>';
+      rooms.forEach(room => {
+        const option = document.createElement('option');
+        option.value = room.id;
+        option.textContent = `Habitación ${room.room_number}`;
+        roomSelect.appendChild(option);
+      });
+
+      statusSelect.innerHTML = '<option value="">Seleccionar...</option>';
+      reservationStatuses.forEach(status => {
+        const option = document.createElement('option');
+        option.value = status.id;
+        option.textContent = status.name;
+        statusSelect.appendChild(option);
+      });
     }
-}
 
-async function saveReservation(event) {
-    event.preventDefault();
+    function populateTables() {
+      const reservationTableBody = document.getElementById('reservationTableBody');
+      reservationTableBody.innerHTML = '';
+      reservations.forEach(reservation => {
+        const user = users.find(u => u.id === reservation.user_id);
+        const client = clients.find(c => c.id === reservation.client_id);
+        const room = rooms.find(r => r.id === reservation.room_id);
+        const status = reservationStatuses.find(s => s.id === reservation.reservation_status_id);
 
-    const id = document.getElementById("reservationId").value;
-    const reservationData = {
-        client_id: parseInt(document.getElementById("client_id").value),
-        room_id: parseInt(document.getElementById("room_id").value),
-        user_id: parseInt(document.getElementById("user_id").value),
-        reservation_status_id: parseInt(document.getElementById("reservation_status_id").value),
-        check_in_date: document.getElementById("check_in_date").value,
-        check_in_out: document.getElementById("check_in_out").value,
-        note: document.getElementById("note").value
-    };
-
-    try {
-        if (id) {
-            await axios.patch(`${API_URL}/reservations/${id}`, reservationData);
-        } else {
-            await axios.post(`${API_URL}/reservations/`, reservationData);
-        }
-
-        bootstrap.Modal.getInstance(document.getElementById("reservationModal")).hide();
-        loadReservations();
-        document.getElementById("reservationForm").reset();
-    } catch (error) {
-        console.error("Error al guardar la reserva:", error);
-        alert("Ocurrió un error al guardar la reserva. Por favor, revisa los datos e inténtalo de nuevo.");
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${reservation.id}</td>
+          <td>${client ? client.first_name + " " + client.last_name : 'Desconocido'}</td>
+          <td>${room ? room.room_number : 'Desconocido'}</td>
+          <td>${reservation.check_in_date}</td>
+          <td>${reservation.check_in_out}</td>
+          <td>${reservation.total}</td>
+          <td>${status ? status.name : 'Desconocido'}</td>
+          <td>${user ? user.username : 'Desconocido'}</td>
+          <td>
+            <button class="btn btn-warning" onclick="editReservation(${reservation.id})">Editar</button>
+            <button class="btn btn-danger" onclick="deleteReservation(${reservation.id})">Eliminar</button>
+          </td>
+        `;
+        reservationTableBody.appendChild(tr);
+      });
     }
-}
 
-async function editReservation(id) {
-    try {
-        const response = await axios.get(`${API_URL}/reservations/${id}`);
-        const data = response.data;
+    function openReservationModal() {
+      document.getElementById('reservationId').value = '';
+      document.getElementById('client_id').value = '';
+      document.getElementById('room_id').value = '';
+      document.getElementById('user_id').value = '';
+      document.getElementById('reservation_status_id').value = '';
+      document.getElementById('check_in_date').value = '';
+      document.getElementById('check_in_out').value = '';
+      document.getElementById('note').value = '';
 
-        document.getElementById("reservationId").value = data.id;
-        document.getElementById("client_id").value = data.client_id;
-        document.getElementById("room_id").value = data.room_id;
-        document.getElementById("user_id").value = data.user_id;
-        document.getElementById("reservation_status_id").value = data.reservation_status_id;
-        document.getElementById("check_in_date").value = data.check_in_date;
-        document.getElementById("check_in_out").value = data.check_in_out;
-        document.getElementById("note").value = data.note;
-
-        new bootstrap.Modal(document.getElementById("reservationModal")).show();
-    } catch (error) {
-        console.error("Error al obtener datos de la reserva:", error);
-        alert("Ocurrió un error al cargar los datos de la reserva para editar.");
+      const modal = new bootstrap.Modal(document.getElementById('reservationModal'));
+      modal.show();
     }
-}
 
-async function deleteReservation(id) {
-    if (confirm("¿Estás seguro de que deseas eliminar esta reserva?")) {
-        try {
-            await axios.delete(`${API_URL}/reservations/${id}`);
-            loadReservations();
-        } catch (error) {
-            console.error("Error al eliminar reserva:", error);
-            alert("Ocurrió un error al eliminar la reserva.");
-        }
+    function editReservation(id) {
+      const reservation = reservations.find(r => r.id === id);
+      if (reservation) {
+        document.getElementById('reservationId').value = reservation.id;
+        document.getElementById('client_id').value = reservation.client_id;
+        document.getElementById('room_id').value = reservation.room_id;
+        document.getElementById('user_id').value = reservation.user_id;
+        document.getElementById('reservation_status_id').value = reservation.reservation_status_id;
+        document.getElementById('check_in_date').value = reservation.check_in_date;
+        document.getElementById('check_in_out').value = reservation.check_in_out;
+        document.getElementById('note').value = reservation.note;
+
+        const modal = new bootstrap.Modal(document.getElementById('reservationModal'));
+        modal.show();
+      }
     }
-}
 
-function openReservationModal() {
-    document.getElementById("reservationForm").reset();
-    document.getElementById("reservationId").value = "";
-    new bootstrap.Modal(document.getElementById("reservationModal")).show();
-}
-
-async function loadSelectOptions() {
-    const endpoints = {
-        client_id: "/client",
-        room_id: "/room",
-        user_id: "/user",
-        reservation_status_id: "/reservationstatus"
-    };
-
-    for (const [selectId, endpoint] of Object.entries(endpoints)) {
-        try {
-            const url = `${API_URL}${endpoint}`;
-            console.log(`Fetching options for ${selectId} from: ${url}`);
-            const response = await axios.get(url);
-            console.log(`Response status for ${selectId}:`, response.status);
-            console.log(`Response data for ${selectId}:`, response.data);
-
-            const select = document.getElementById(selectId);
-            if (!select) {
-                console.error(`Elemento select con id '${selectId}' no encontrado.`);
-                continue;
-            }
-
-            select.innerHTML = '<option value="">Seleccione una opción</option>';
-
-            if (response.data && Array.isArray(response.data)) {
-                response.data.forEach(item => {
-                    const option = document.createElement("option");
-                    option.value = item.id;
-                    const label = item.name || item.room_number || item.username || item.status || `ID: ${item.id}`;
-                    option.textContent = label;
-                    select.appendChild(option);
-                });
-            } else {
-                console.warn(`La API devolvió una respuesta inesperada para ${selectId}:`, response);
-            }
-        } catch (error) {
-            console.error(`Error cargando opciones para ${selectId}:`, error);
-            alert(`Ocurrió un error al cargar las opciones para el campo ${selectId}. Por favor, revisa la consola para más detalles.`);
-        }
+    function deleteReservation(id) {
+      if (confirm("¿Estás seguro de que deseas eliminar esta reserva?")) {
+        axios.delete(`http://127.0.0.1:8000/api/reservations/${id}`)
+          .then(response => {
+            reservations = reservations.filter(r => r.id !== id);
+            populateTables();
+          })
+          .catch(error => console.error("Error eliminando reserva:", error));
+      }
     }
-}
 
-function toggleSidebar() {
-    document.getElementById("sidebar").classList.toggle("active");
-    document.getElementById("main-content").classList.toggle("expanded");
-}
+    function searchReservations() {
+      const searchQuery = document.getElementById('searchClient').value.toLowerCase();
+      const filteredReservations = reservations.filter(reservation => {
+        const client = clients.find(c => c.id === reservation.client_id);
+        return client && (client.first_name.toLowerCase().includes(searchQuery) || client.last_name.toLowerCase().includes(searchQuery));
+      });
+      reservations = filteredReservations;
+      populateTables();
+    }
+
+    document.getElementById('reservationForm').addEventListener('submit', function (event) {
+      event.preventDefault();  // Previene que el formulario se envíe y recargue la página.
+
+      const reservationId = document.getElementById('reservationId').value;
+      const clientId = document.getElementById('client_id').value;
+      const roomId = document.getElementById('room_id').value;
+      const userId = document.getElementById('user_id').value;
+      const reservationStatusId = document.getElementById('reservation_status_id').value;
+      const checkInDate = document.getElementById('check_in_date').value;
+      const checkInOut = document.getElementById('check_in_out').value;
+      const note = document.getElementById('note').value;
+
+      const reservationData = {
+        client_id: clientId,
+        room_id: roomId,
+        reservation_status_id: reservationStatusId,
+        check_in_date: checkInDate,
+        check_in_out: checkInOut,
+        note: note,
+        user_id: userId,
+      };
+
+      if (reservationId) {
+        // Si hay ID, es una edición
+        axios.patch(`http://127.0.0.1:8000/api/reservations/${reservationId}`, reservationData)
+          .then(response => {
+            // Actualiza la reserva en la tabla sin recargar
+            const updatedReservation = response.data;
+            const index = reservations.findIndex(r => r.id === updatedReservation.id);
+            reservations[index] = updatedReservation;
+            populateTables();  // Recarga las reservas en la tabla
+            document.getElementById('reservationModal').querySelector('.btn-close').click(); // Cierra el modal
+          })
+          .catch(error => {
+            console.error('Error editando reserva:', error);
+            alert('Error al editar la reserva');
+          });
+      } else {
+        // Si no hay ID, es una creación
+        axios.post('http://127.0.0.1:8000/api/reservations/', reservationData)
+          .then(response => {
+            reservations.push(response.data);  // Agrega la nueva reserva
+            populateTables();  // Recarga las reservas en la tabla
+            document.getElementById('reservationModal').querySelector('.btn-close').click(); // Cierra el modal
+          })
+          .catch(error => {
+            console.error('Error creando reserva:', error);
+            alert('Error al crear la reserva');
+          });
+      }
+    });
+
+    fetchData(); // Llama a la función de i// Llama a la función de i
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const mainContent = document.getElementById("main-content");
+        sidebar.classList.toggle("sidebar-hidden");
+        mainContent.classList.toggle("main-collapsed");
+    }
