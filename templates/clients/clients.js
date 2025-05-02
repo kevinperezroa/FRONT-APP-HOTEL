@@ -2,13 +2,14 @@ const apiUrl = "http://127.0.0.1:8000/api/client";
 const rowsPerPage = 12;
 let currentPage = 1;
 let clients = [];
+let clientModalInstance;
 
 function fetchClients() {
     axios.get(apiUrl).then(res => {
         clients = res.data;
         renderTable();
-        renderPagination();
-    });
+        renderPagination(clients.length);
+    }).catch(handleError);
 }
 
 function toggleSidebar() {
@@ -21,7 +22,12 @@ function toggleSidebar() {
 function getFilteredClients() {
     const query = document.getElementById("searchInput").value.trim().toLowerCase();
     if (!query) return clients;
-    return clients.filter(c => c.number_identification.toLowerCase().includes(query));
+    return clients.filter(c =>
+        c.first_name.toLowerCase().includes(query) ||
+        c.last_name.toLowerCase().includes(query) ||
+        c.email.toLowerCase().includes(query) ||
+        c.number_identification.toLowerCase().includes(query)
+    );
 }
 
 function renderTable() {
@@ -34,34 +40,33 @@ function renderTable() {
 
     paginated.forEach(client => {
         tbody.innerHTML += `
-                        <tr>
-                            <td>${client.id}</td>
-                            <td>${client.first_name}</td>
-                            <td>${client.last_name}</td>
-                            <td>${client.phone}</td>
-                            <td>${client.email}</td>
-                            <td>${client.number_identification}</td>
-                            <td>
-                                <button class="btn btn-sm btn-custom me-1" onclick='openEditModal(${JSON.stringify(client)})'>Editar</button>
-                                <button class="btn btn-sm btn-custom" onclick='deleteClient(${client.id})'>Eliminar</button>
-                            </td>
-                        </tr>`;
+            <tr>
+                <td>${client.id}</td>
+                <td>${client.first_name}</td>
+                <td>${client.last_name}</td>
+                <td>${client.phone}</td>
+                <td>${client.email}</td>
+                <td>${client.number_identification}</td>
+                <td>
+                    <button class="btn btn-sm btn-custom me-1" onclick='openEditModal(${JSON.stringify(client)})'>Editar</button>
+                    <button class="btn btn-sm btn-custom" onclick='deleteClient(${client.id})'>Eliminar</button>
+                </td>
+            </tr>`;
     });
 
     renderPagination(filtered.length);
 }
 
-function renderPagination(total = null) {
-    const filtered = total ?? getFilteredClients().length;
-    const pageCount = Math.ceil(filtered / rowsPerPage);
+function renderPagination(total) {
+    const pageCount = Math.ceil(total / rowsPerPage);
     const pagination = document.getElementById("pagination");
     pagination.innerHTML = "";
 
     for (let i = 1; i <= pageCount; i++) {
         pagination.innerHTML += `
-                        <li class="page-item ${i === currentPage ? "active" : ""}">
-                            <button class="page-link btn-custom" onclick="goToPage(${i})">${i}</button>
-                        </li>`;
+            <li class="page-item ${i === currentPage ? "active" : ""}">
+                <button class="page-link btn-custom" onclick="goToPage(${i})">${i}</button>
+            </li>`;
     }
 }
 
@@ -70,25 +75,19 @@ function goToPage(page) {
     renderTable();
 }
 
-function openCreateModal() {
-    document.getElementById("modalTitle").innerText = "Crear Cliente";
-    document.getElementById("clientId").value = "";
-    document.getElementById("firstName").value = "";
-    document.getElementById("lastName").value = "";
-    document.getElementById("phone").value = "";
-    document.getElementById("email").value = "";
-    document.getElementById("identification").value = "";
+function openClientModal(client = {}) {
+    document.getElementById("modalTitle").innerText = client.id ? "Editar Cliente" : "Crear Cliente";
+    document.getElementById("clientId").value = client.id || "";
+    document.getElementById("firstName").value = client.first_name || "";
+    document.getElementById("lastName").value = client.last_name || "";
+    document.getElementById("phone").value = client.phone || "";
+    document.getElementById("email").value = client.email || "";
+    document.getElementById("identification").value = client.number_identification || "";
+    clientModalInstance.show();
 }
 
 function openEditModal(client) {
-    document.getElementById("modalTitle").innerText = "Editar Cliente";
-    document.getElementById("clientId").value = client.id;
-    document.getElementById("firstName").value = client.first_name;
-    document.getElementById("lastName").value = client.last_name;
-    document.getElementById("phone").value = client.phone;
-    document.getElementById("email").value = client.email;
-    document.getElementById("identification").value = client.number_identification;
-    new bootstrap.Modal(document.getElementById('clientModal')).show();
+    openClientModal(client);
 }
 
 function submitClient(e) {
@@ -102,23 +101,39 @@ function submitClient(e) {
         number_identification: document.getElementById("identification").value,
     };
 
-    const closeModal = () => bootstrap.Modal.getInstance(document.getElementById('clientModal')).hide();
+    const closeModal = () => {
+        // Quitar el foco actual
+        document.activeElement.blur();
+        // Esperar un momento para cerrar correctamente el modal
+        setTimeout(() => {
+            clientModalInstance.hide();
+        }, 10);
+    };
 
     if (id) {
         axios.patch(`${apiUrl}/${id}`, data)
             .then(() => { fetchClients(); closeModal(); })
-            .catch(err => alert(err.response.data.detail));
+            .catch(handleError);
     } else {
         axios.post(apiUrl, data)
             .then(() => { fetchClients(); closeModal(); })
-            .catch(err => alert(err.response.data.detail));
+            .catch(handleError);
     }
 }
 
 function deleteClient(id) {
     if (confirm("¿Estás seguro de que deseas eliminar este cliente?")) {
-        axios.delete(`${apiUrl}/${id}`).then(() => fetchClients());
+        axios.delete(`${apiUrl}/${id}`).then(() => fetchClients()).catch(handleError);
     }
 }
 
-document.addEventListener("DOMContentLoaded", fetchClients);
+function handleError(err) {
+    const errorMessage = err.response?.data?.detail || 'Error desconocido';
+    alert(`Ha ocurrido un error: ${errorMessage}`);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    fetchClients();
+    const modalEl = document.getElementById("clientModal");
+    clientModalInstance = new bootstrap.Modal(modalEl);
+});
