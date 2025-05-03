@@ -65,3 +65,37 @@ body {
 .card {
     border-radius: 15px;
 }
+
+.bg-light-purple {
+    background-color: #d6b3f0 !important;
+    color: #000 !important; 
+}
+
+.btn-primary {
+    background-color: #d6b3f0;
+    border-color: #d6b3f0;
+    color: #000;
+}
+
+.btn-primary:hover {
+    background-color: #c09ee0;
+    border-color: #c09ee0;
+}
+
+.btn-outline-primary {
+    color: #d6b3f0;
+    border-color: #d6b3f0;
+}
+
+.btn-outline-primary:hover {
+    background-color: #d6b3f0;
+    color: #000;
+}
+
+.card-body i {
+    font-size: 1.5rem;
+    vertical-align: middle;
+}
+.card-text {
+    font-size: 1.5rem;
+}

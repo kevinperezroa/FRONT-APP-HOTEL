@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - Hotel</title>
   <link rel="icon" href="/hotel.png" type="image/x-icon">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -11,10 +12,9 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-    <!-- Barra de navegación superior -->
     <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
         <div class="container-fluid">
-            <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
+            <button class="btn-toggle-sidebar" id="sidebarToggle">
                 <i class="bi bi-list"></i>
             </button>
             <a class="navbar-brand" href="#">HotelApp</a>
@@ -29,88 +29,89 @@
       <a href="/templates/dashboard/dashboard.html"><i class="bi bi-bar-chart-line"></i> Dashboard</a>
   </div>
 
-<!-- Contenido principal -->
 <div class="main-content" id="main-content">
     <div class="container my-5">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light rounded mb-4">
-      <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1">Panel de Estadísticas</span>
-        <button class="btn btn-outline-primary" onclick="downloadPDF()">Descargar PDF</button>
-      </div>
-    </nav>
+      <nav class="navbar navbar-expand-lg navbar-light bg-light rounded mb-4">
+        <div class="container-fluid">
+          <span class="navbar-brand mb-0 h1">Panel de Estadísticas</span>
+          <button class="btn btn-primary" onclick="downloadPDF()">
+              <i class="bi bi-download me-2"></i> Descargar PDF
+          </button>
+        </div>
+      </nav>
 
-    <!-- Filtros -->
-    <div class="row mb-4">
-      <div class="col-md-4">
-        <label for="month" class="form-label">Mes</label>
-        <select id="month" class="form-select">
-          <!-- Opciones de mes -->
-          <option value="1">Enero</option>
-          <option value="2">Febrero</option>
-          <option value="3">Marzo</option>
-          <option value="4">Abril</option>
-          <option value="5">Mayo</option>
-          <option value="6">Junio</option>
-          <option value="7">Julio</option>
-          <option value="8">Agosto</option>
-          <option value="9">Septiembre</option>
-          <option value="10">Octubre</option>
-          <option value="11">Noviembre</option>
-          <option value="12">Diciembre</option>
-        </select>
-      </div>
+      <div class="row mb-4">
+        <div class="col-md-4">
+          <label for="month" class="form-label">Mes</label>
+          <select id="month" class="form-select">
+            <option value="">Seleccionar Mes</option>
+            <option value="1">Enero</option>
+            <option value="2">Febrero</option>
+            <option value="3">Marzo</option>
+            <option value="4">Abril</option>
+            <option value="5">Mayo</option>
+            <option value="6">Junio</option>
+            <option value="7">Julio</option>
+            <option value="8">Agosto</option>
+            <option value="9">Septiembre</option>
+            <option value="10">Octubre</option>
+            <option value="11">Noviembre</option>
+            <option value="12">Diciembre</option>
+          </select>
+        </div>
 
-      <div class="col-md-4">
-        <label for="year" class="form-label">Año</label>
-        <select id="year" class="form-select">
-          <!-- Opciones de años -->
-          <option value="2025">2025</option>
-          <option value="2024">2024</option>
-          <option value="2023">2023</option>
-          <option value="2022">2022</option>
-          <option value="2021">2021</option>
-        </select>
-      </div>
+        <div class="col-md-4">
+          <label for="year" class="form-label">Año</label>
+          <select id="year" class="form-select">
+            <option value="">Seleccionar Año</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+            <option value="2022">2022</option>
+            <option value="2021">2021</option>
+          </select>
+        </div>
 
-      <div class="col-md-4 d-flex align-items-end">
-        <button class="btn btn-primary" onclick="loadDashboardData()">Filtrar</button>
-      </div>
-    </div>
-
-    <!-- Tarjetas con estadísticas -->
-    <div class="row" id="dashboard-cards">
-      <div class="col-md-6 col-lg-3 mb-4">
-        <div class="card text-white bg-success h-100">
-          <div class="card-body">
-            <h5 class="card-title">Total Recaudado</h5>
-            <p class="card-text" id="total_recaudo">$0.00</p>
-          </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <button class="btn btn-primary" onclick="loadDashboardData()">Filtrar</button>
         </div>
       </div>
 
-      <div class="col-md-6 col-lg-3 mb-4">
-        <div class="card text-white bg-info h-100">
-          <div class="card-body">
-            <h5 class="card-title">Ocupación (%)</h5>
-            <p class="card-text" id="porcentaje_ocupacion">0%</p>
+      <h3 class="mt-4 mb-3">Estadísticas Mensuales</h3>
+      <div class="row" id="monthly-dashboard-cards">
+        <div class="col-md-6 col-lg-6 mb-4">
+          <div class="card text-dark bg-light-purple h-100">
+            <div class="card-body d-flex flex-column justify-content-between">
+              <h5 class="card-title"><i class="bi bi-currency-dollar me-2"></i>Total Recaudado</h5>
+              <p class="card-text fs-4" id="total_recaudo_monthly">$0.00</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="col-md-6 col-lg-3 mb-4">
-        <div class="card text-white bg-warning h-100">
-          <div class="card-body">
-            <h5 class="card-title">Prom. Días</h5>
-            <p class="card-text" id="promedio_dias">0</p>
+        <div class="col-md-6 col-lg-6 mb-4">
+          <div class="card text-dark bg-light-purple h-100">
+            <div class="card-body d-flex flex-column justify-content-between">
+              <h5 class="card-title"><i class="bi bi-graph-up me-2"></i>Ocupación (%)</h5>
+              <p class="card-text fs-4" id="porcentaje_ocupacion_monthly">0%</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="col-md-6 col-lg-3 mb-4">
-        <div class="card text-white bg-primary h-100">
-          <div class="card-body">
-            <h5 class="card-title">Total Clientes</h5>
-            <p class="card-text" id="total_clientes">0</p>
+        <div class="col-md-6 col-lg-6 mb-4">
+          <div class="card text-dark bg-light-purple h-100">
+            <div class="card-body d-flex flex-column justify-content-between">
+              <h5 class="card-title"><i class="bi bi-clock me-2"></i>Prom. Días</h5>
+              <p class="card-text fs-4" id="promedio_dias_monthly">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-6 mb-4">
+          <div class="card text-dark bg-light-purple h-100">
+            <div class="card-body d-flex flex-column justify-content-between">
+              <h5 class="card-title"><i class="bi bi-people me-2"></i>Total Clientes</h5>
+              <p class="card-text fs-4" id="total_clientes_monthly">0</p>
+            </div>
           </div>
         </div>
       </div>
