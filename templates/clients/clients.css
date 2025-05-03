@@ -105,3 +105,8 @@ body {
     color: white;
     border-color: #d1aef0;
 }
+
+.btn-status-toggle {
+    width: 100px; 
+    text-align: center; 
+}

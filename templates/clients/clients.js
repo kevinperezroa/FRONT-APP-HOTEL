@@ -53,8 +53,8 @@ function renderTable() {
         const estadoClase = client.active ? "text-success" : "text-danger";
 
         const actionBtn = client.active
-            ? `<button class="btn btn-sm btn-danger" onclick='toggleClientStatus(${client.id}, false)'>Desactivar</button>`
-            : `<button class="btn btn-sm btn-success" onclick='toggleClientStatus(${client.id}, true)'>Activar</button>`;
+            ? `<button class="btn btn-sm btn-danger btn-status-toggle" onclick='toggleClientStatus(${client.id}, false)'>Desactivar</button>`
+            : `<button class="btn btn-sm btn-success btn-status-toggle" onclick='toggleClientStatus(${client.id}, true)'>Activar</button>`;
 
         tbody.innerHTML += `
             <tr>
@@ -102,7 +102,7 @@ function openClientModal(client = {}) {
     document.getElementById("email").value = client.email || "";
     document.getElementById("identification").value = client.number_identification || "";
     if (clientModalInstance) {
-      clientModalInstance.show();
+        clientModalInstance.show();
     }
 }
 
@@ -183,11 +183,11 @@ function handleError(err, customMessage = 'Ocurrió un error al procesar la soli
         } else if (err.response.data && typeof err.response.data.detail === 'string') {
             errorMessage = err.response.data.detail;
         } else if (err.response.data && typeof err.response.data.error === 'string') {
-             errorMessage = err.response.data.error;
+            errorMessage = err.response.data.error;
         } else if (err.response.data && typeof err.response.data.message === 'string') {
-             errorMessage = err.response.data.message;
+            errorMessage = err.response.data.message;
         } else if (err.response.status) {
-             errorMessage = `Error del servidor: ${err.response.status}`;
+            errorMessage = `Error del servidor: ${err.response.status}`;
         }
     } else if (err.request) {
         console.error("Request:", err.request);
@@ -198,7 +198,7 @@ function handleError(err, customMessage = 'Ocurrió un error al procesar la soli
     }
 
     if (typeof Swal !== 'undefined') {
-         Swal.fire("Error", errorMessage, "error");
+        Swal.fire("Error", errorMessage, "error");
     } else {
         alert(`Ha ocurrido un error: ${errorMessage}`);
     }
@@ -209,9 +209,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const modalEl = document.getElementById("clientModal");
     if (modalEl) {
-      clientModalInstance = new bootstrap.Modal(modalEl);
+        clientModalInstance = new bootstrap.Modal(modalEl);
     } else {
-      console.error("Elemento del modal #clientModal no encontrado.");
+        console.error("Elemento del modal #clientModal no encontrado.");
     }
 
     const statusFilterEl = document.getElementById("statusFilter");
@@ -224,24 +224,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const searchInputEl = document.getElementById("searchInput");
     if (searchInputEl) {
-      searchInputEl.addEventListener('keyup', () => {
-          currentPage = 1;
-          renderTable();
-      });
+        searchInputEl.addEventListener('keyup', () => {
+            currentPage = 1;
+            renderTable();
+        });
     }
 
     const clientFormEl = document.getElementById("clientForm");
     if (clientFormEl) {
-      clientFormEl.addEventListener("submit", submitClient);
+        clientFormEl.addEventListener("submit", submitClient);
     }
 
-    const createClientButton = document.querySelector('[data-bs-target="#clientModal"]'); // Asumiendo que usas data-bs-target
-     if (createClientButton) {
+    const createClientButton = document.querySelector('[data-bs-target="#clientModal"]');
+    if (createClientButton) {
         createClientButton.addEventListener('click', () => openClientModal());
-     }
+    }
 
-     const sidebarToggler = document.getElementById('sidebarToggle');
-     if (sidebarToggler) {
+    const sidebarToggler = document.getElementById('sidebarToggle');
+    if (sidebarToggler) {
         sidebarToggler.addEventListener('click', toggleSidebar);
-     }
+    }
 });
