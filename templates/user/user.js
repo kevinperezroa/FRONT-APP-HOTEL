@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const apiUrl = "http://127.0.0.1:8000/api/user/";
   let users = [];
 
+  
   const userForm = document.getElementById("userForm");
   const userModal = new bootstrap.Modal(document.getElementById("userModal"));
   const statusFilter = document.getElementById("statusFilter");
@@ -144,3 +145,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Carga inicial
   fetchUsers();
 });
+
+function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  const mainContent = document.getElementById("main-content");
+  sidebar.classList.toggle("sidebar-hidden");
+  mainContent.classList.toggle("main-collapsed");
+}
