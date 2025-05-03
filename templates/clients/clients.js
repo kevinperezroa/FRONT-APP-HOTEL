@@ -24,11 +24,12 @@ function getFilteredClients() {
     const status = document.getElementById("statusFilter").value;
 
     return clients.filter(c => {
-        const matchesQuery =
+        const matchesQuery = !query || (
             c.first_name.toLowerCase().includes(query) ||
             c.last_name.toLowerCase().includes(query) ||
             c.email.toLowerCase().includes(query) ||
-            c.number_identification.toLowerCase().includes(query);
+            c.number_identification.toLowerCase().includes(query)
+        );
 
         const matchesStatus =
             status === "all" ||
@@ -47,15 +48,13 @@ function renderTable() {
     const start = (currentPage - 1) * rowsPerPage;
     const paginated = filtered.slice(start, start + rowsPerPage);
 
-    const currentFilter = document.getElementById("statusFilter").value;
-
     paginated.forEach(client => {
         const estadoTexto = client.active ? "Activo" : "Inactivo";
         const estadoClase = client.active ? "text-success" : "text-danger";
 
-        const actionBtn = currentFilter === "inactive"
-            ? `<button class="btn btn-sm btn-success" onclick='toggleClientStatus(${client.id}, true)'>Activar</button>`
-            : `<button class="btn btn-sm btn-danger" onclick='toggleClientStatus(${client.id}, false)'>Eliminar</button>`;
+        const actionBtn = client.active
+            ? `<button class="btn btn-sm btn-danger" onclick='toggleClientStatus(${client.id}, false)'>Desactivar</button>`
+            : `<button class="btn btn-sm btn-success" onclick='toggleClientStatus(${client.id}, true)'>Activar</button>`;
 
         tbody.innerHTML += `
             <tr>
@@ -102,7 +101,9 @@ function openClientModal(client = {}) {
     document.getElementById("phone").value = client.phone || "";
     document.getElementById("email").value = client.email || "";
     document.getElementById("identification").value = client.number_identification || "";
-    clientModalInstance.show();
+    if (clientModalInstance) {
+      clientModalInstance.show();
+    }
 }
 
 function openEditModal(client) {
@@ -121,14 +122,16 @@ function submitClient(e) {
     };
 
     const closeModal = () => {
-        document.activeElement.blur();
-        setTimeout(() => {
-            clientModalInstance.hide();
-        }, 10);
+        if (clientModalInstance) {
+            document.activeElement.blur();
+            setTimeout(() => {
+                clientModalInstance.hide();
+            }, 10);
+        }
     };
 
     if (id) {
-        axios.patch(`${apiUrl}/${id}`, data)
+        axios.patch(`${apiUrl}/${id}/`, data)
             .then(() => { fetchClients(); closeModal(); })
             .catch(handleError);
     } else {
@@ -151,34 +154,94 @@ function toggleClientStatus(id, activate) {
         confirmButtonColor: activate ? "#28a745" : "#d33",
         cancelButtonColor: "#3085d6",
         confirmButtonText: confirmText,
+        cancelButtonText: "Cancelar"
     }).then((result) => {
         if (result.isConfirmed) {
-            axios
-                .patch(`${apiUrl}/${id}/status`, { active: activate })
+            axios.patch(`${apiUrl}/${id}/status/`, { active: activate })
                 .then(() => {
                     Swal.fire("Éxito", successMessage, "success");
                     fetchClients();
                 })
                 .catch((error) => {
                     console.error("Error al cambiar estado del cliente:", error);
-                    Swal.fire("Error", "No se pudo cambiar el estado del cliente.", "error");
+                    handleError(error, "No se pudo cambiar el estado del cliente.");
                 });
         }
     });
 }
 
-function handleError(err) {
-    const errorMessage = err.response?.data?.detail || 'Error desconocido';
-    alert(`Ha ocurrido un error: ${errorMessage}`);
+function handleError(err, customMessage = 'Ocurrió un error al procesar la solicitud.') {
+    console.error("Error:", err);
+    let errorMessage = customMessage;
+
+    if (err.response) {
+        console.error("Data:", err.response.data);
+        console.error("Status:", err.response.status);
+        console.error("Headers:", err.response.headers);
+        if (typeof err.response.data === 'string') {
+            errorMessage = err.response.data;
+        } else if (err.response.data && typeof err.response.data.detail === 'string') {
+            errorMessage = err.response.data.detail;
+        } else if (err.response.data && typeof err.response.data.error === 'string') {
+             errorMessage = err.response.data.error;
+        } else if (err.response.data && typeof err.response.data.message === 'string') {
+             errorMessage = err.response.data.message;
+        } else if (err.response.status) {
+             errorMessage = `Error del servidor: ${err.response.status}`;
+        }
+    } else if (err.request) {
+        console.error("Request:", err.request);
+        errorMessage = "No se pudo obtener respuesta del servidor. Verifica tu conexión o la disponibilidad del servicio.";
+    } else {
+        console.error('Error Message:', err.message);
+        errorMessage = `Error en la configuración de la solicitud: ${err.message}`;
+    }
+
+    if (typeof Swal !== 'undefined') {
+         Swal.fire("Error", errorMessage, "error");
+    } else {
+        alert(`Ha ocurrido un error: ${errorMessage}`);
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     fetchClients();
-    const modalEl = document.getElementById("clientModal");
-    clientModalInstance = new bootstrap.Modal(modalEl);
 
-    document.getElementById("statusFilter").addEventListener("change", () => {
-        currentPage = 1;
-        renderTable();
-    });
+    const modalEl = document.getElementById("clientModal");
+    if (modalEl) {
+      clientModalInstance = new bootstrap.Modal(modalEl);
+    } else {
+      console.error("Elemento del modal #clientModal no encontrado.");
+    }
+
+    const statusFilterEl = document.getElementById("statusFilter");
+    if (statusFilterEl) {
+        statusFilterEl.addEventListener("change", () => {
+            currentPage = 1;
+            renderTable();
+        });
+    }
+
+    const searchInputEl = document.getElementById("searchInput");
+    if (searchInputEl) {
+      searchInputEl.addEventListener('keyup', () => {
+          currentPage = 1;
+          renderTable();
+      });
+    }
+
+    const clientFormEl = document.getElementById("clientForm");
+    if (clientFormEl) {
+      clientFormEl.addEventListener("submit", submitClient);
+    }
+
+    const createClientButton = document.querySelector('[data-bs-target="#clientModal"]'); // Asumiendo que usas data-bs-target
+     if (createClientButton) {
+        createClientButton.addEventListener('click', () => openClientModal());
+     }
+
+     const sidebarToggler = document.getElementById('sidebarToggle');
+     if (sidebarToggler) {
+        sidebarToggler.addEventListener('click', toggleSidebar);
+     }
 });
