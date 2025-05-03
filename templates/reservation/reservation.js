@@ -130,15 +130,38 @@ let rooms = [];
     }
 
     function deleteReservation(id) {
-      if (confirm("¿Estás seguro de que deseas eliminar esta reserva?")) {
-        axios.delete(`http://127.0.0.1:8000/api/reservations/${id}`)
-          .then(response => {
-            reservations = reservations.filter(r => r.id !== id);
-            populateTables();
-          })
-          .catch(error => console.error("Error eliminando reserva:", error));
-      }
-    }
+      Swal.fire({
+          title: '¿Estás seguro?',
+          text: "¡No podrás revertir esto!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              axios.delete(`http://127.0.0.1:8000/api/reservations/${id}`)
+                  .then(response => {
+                      reservations = reservations.filter(r => r.id !== id);
+                      populateTables();
+                      Swal.fire(
+                          '¡Eliminado!',
+                          'La reserva ha sido eliminada.',
+                          'success'
+                      );
+                  })
+                  .catch(error => {
+                      console.error("Error eliminando reserva:", error);
+                      Swal.fire(
+                          'Error',
+                          'Hubo un problema al eliminar la reserva.',
+                          'error'
+                      );
+                  });
+          }
+      });
+  }
 
     function searchReservations() {
       const searchQuery = document.getElementById('searchClient').value.toLowerCase();
