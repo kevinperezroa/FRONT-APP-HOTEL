@@ -6,9 +6,9 @@ let clientModalInstance;
 
 function fetchClients() {
     axios.get(apiUrl).then(res => {
-        clients = res.data;
+        clients = res.data.map(c => ({ ...c, active: Boolean(c.active) }));
         renderTable();
-        renderPagination(clients.length);
+        renderPagination(getFilteredClients().length);
     }).catch(handleError);
 }
 
@@ -21,13 +21,22 @@ function toggleSidebar() {
 
 function getFilteredClients() {
     const query = document.getElementById("searchInput").value.trim().toLowerCase();
-    if (!query) return clients;
-    return clients.filter(c =>
-        c.first_name.toLowerCase().includes(query) ||
-        c.last_name.toLowerCase().includes(query) ||
-        c.email.toLowerCase().includes(query) ||
-        c.number_identification.toLowerCase().includes(query)
-    );
+    const status = document.getElementById("statusFilter").value;
+
+    return clients.filter(c => {
+        const matchesQuery =
+            c.first_name.toLowerCase().includes(query) ||
+            c.last_name.toLowerCase().includes(query) ||
+            c.email.toLowerCase().includes(query) ||
+            c.number_identification.toLowerCase().includes(query);
+
+        const matchesStatus =
+            status === "all" ||
+            (status === "active" && c.active === true) ||
+            (status === "inactive" && c.active === false);
+
+        return matchesQuery && matchesStatus;
+    });
 }
 
 function renderTable() {
@@ -38,7 +47,16 @@ function renderTable() {
     const start = (currentPage - 1) * rowsPerPage;
     const paginated = filtered.slice(start, start + rowsPerPage);
 
+    const currentFilter = document.getElementById("statusFilter").value;
+
     paginated.forEach(client => {
+        const estadoTexto = client.active ? "Activo" : "Inactivo";
+        const estadoClase = client.active ? "text-success" : "text-danger";
+
+        const actionBtn = currentFilter === "inactive"
+            ? `<button class="btn btn-sm btn-success" onclick='toggleClientStatus(${client.id}, true)'>Activar</button>`
+            : `<button class="btn btn-sm btn-danger" onclick='toggleClientStatus(${client.id}, false)'>Eliminar</button>`;
+
         tbody.innerHTML += `
             <tr>
                 <td>${client.id}</td>
@@ -47,9 +65,10 @@ function renderTable() {
                 <td>${client.phone}</td>
                 <td>${client.email}</td>
                 <td>${client.number_identification}</td>
+                <td><span class="${estadoClase}">${estadoTexto}</span></td>
                 <td>
                     <button class="btn btn-sm btn-custom me-1" onclick='openEditModal(${JSON.stringify(client)})'>Editar</button>
-                    <button class="btn btn-sm btn-custom" onclick='deleteClient(${client.id})'>Eliminar</button>
+                    ${actionBtn}
                 </td>
             </tr>`;
     });
@@ -102,9 +121,7 @@ function submitClient(e) {
     };
 
     const closeModal = () => {
-        // Quitar el foco actual
         document.activeElement.blur();
-        // Esperar un momento para cerrar correctamente el modal
         setTimeout(() => {
             clientModalInstance.hide();
         }, 10);
@@ -121,10 +138,33 @@ function submitClient(e) {
     }
 }
 
-function deleteClient(id) {
-    if (confirm("¿Estás seguro de que deseas eliminar este cliente?")) {
-        axios.delete(`${apiUrl}/${id}`).then(() => fetchClients()).catch(handleError);
-    }
+function toggleClientStatus(id, activate) {
+    const actionText = activate ? "activar" : "marcar como inactivo";
+    const confirmText = activate ? "Sí, activar" : "Sí, marcar como inactivo";
+    const successMessage = activate ? "El cliente ha sido activado." : "El cliente ha sido marcado como inactivo.";
+
+    Swal.fire({
+        title: "¿Estás seguro?",
+        text: `El cliente será ${actionText}.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: activate ? "#28a745" : "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: confirmText,
+    }).then((result) => {
+        if (result.isConfirmed) {
+            axios
+                .patch(`${apiUrl}/${id}/status`, { active: activate })
+                .then(() => {
+                    Swal.fire("Éxito", successMessage, "success");
+                    fetchClients();
+                })
+                .catch((error) => {
+                    console.error("Error al cambiar estado del cliente:", error);
+                    Swal.fire("Error", "No se pudo cambiar el estado del cliente.", "error");
+                });
+        }
+    });
 }
 
 function handleError(err) {
@@ -136,4 +176,9 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchClients();
     const modalEl = document.getElementById("clientModal");
     clientModalInstance = new bootstrap.Modal(modalEl);
+
+    document.getElementById("statusFilter").addEventListener("change", () => {
+        currentPage = 1;
+        renderTable();
+    });
 });
