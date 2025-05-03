@@ -142,7 +142,7 @@ function submitClient(e) {
 }
 
 function toggleClientStatus(id, activate) {
-    const actionText = activate ? "activar" : "marcar como inactivo";
+    const actionText = activate ? "activar" : "marcado como inactivo";
     const confirmText = activate ? "Sí, activar" : "Sí, marcar como inactivo";
     const successMessage = activate ? "El cliente ha sido activado." : "El cliente ha sido marcado como inactivo.";
 
