@@ -57,33 +57,34 @@ Los principales endpoints del backend con los que interactúa este frontend prob
 
 
 ## 📂 ESTRUCTURA DEL PROYECTO
-- `📂 templates/` - Contiene las plantillas HTML para las diferentes páginas de la aplicación.
-  - `📂 clients/` - Archivos relacionados con la sección de clientes.
-    - `clients.css` - Estilos CSS específicos para la página de clientes.
-    - `clients.html` - Estructura HTML de la página de clientes.
-    - `clients.js` - Lógica JavaScript para la interactividad de la página de clientes.
-  - `📂 dashboard/` - Archivos relacionados con el panel de control.
-    - `dashboard.css` - Estilos CSS específicos para el panel de control.
-    - `dashboard.html` - Estructura HTML del panel de control.
-    - `dashboard.js` - Lógica JavaScript para la interactividad del panel de control.
-  - `📂 login/` - Archivos relacionados con la página de inicio de sesión.
-    - `login.css` - Estilos CSS específicos para la página de inicio de sesión.
-    - `login.html` - Estructura HTML de la página de inicio de sesión.
-    - `login.js` - Lógica JavaScript para la interactividad de la página de inicio de sesión.
-  - `📂 reservation/` - Archivos relacionados con la sección de reservas.
-    - `reservation.css` - Estilos CSS específicos para la página de reservas.
-    - `reservation.html` - Estructura HTML de la página de reservas.
-    - `reservation.js` - Lógica JavaScript para la interactividad de la página de reservas.
-  - `📂 room/` - Archivos relacionados con la sección de habitaciones.
-    - `room.css` - Estilos CSS específicos para la página de habitaciones.
-    - `room.html` - Estructura HTML de la página de habitaciones.
-    - `room.js` - Lógica JavaScript para la interactividad de la página de habitaciones.
-  - `📂 user/` - Archivos relacionados con la sección de usuarios.
-    - `user.css` - Estilos CSS específicos para la página de usuarios.
-    - `user.html` - Estructura HTML de la página de usuarios.
-    - `user.js` - Lógica JavaScript para la interactividad de la página de usuarios.
-- `.gitattributes` - Define atributos específicos de la ruta para Git (manejo de fin de línea, etc.).
-- `index.html` - El punto de entrada principal de la aplicación web (la página de inicio).
+📁 FRONT-APP-HOTEL
+├── templates/
+│   ├── clients/
+│   │   ├── clients.css
+│   │   ├── clients.html
+│   │   └── clients.js
+│   ├── dashboard/
+│   │   ├── dashboard.css
+│   │   ├── dashboard.html
+│   │   └── dashboard.js
+│   ├── login/
+│   │   ├── login.css
+│   │   └── login.js
+│   ├── reservation/
+│   │   ├── reservation.css
+│   │   ├── reservation.html
+│   │   └── reservation.js
+│   ├── room/
+│   │   ├── room.css
+│   │   ├── room.html
+│   │   └── room.js
+│   └── user/
+│       ├── user.css
+│       ├── user.html
+│       └── user.js
+│
+├── .gitattributes
+└── index.html
 
 **Descripción de las carpetas y archivos:**
 
