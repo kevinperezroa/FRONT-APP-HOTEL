@@ -4,15 +4,15 @@ let reservationStatuses = [];
 let reservations = [];
 let users = [];
 
+let currentPage = 1;
+const pageSize = 10;
+
 /**
  * Configura una instancia de Axios con el token de autenticación del localStorage.
- * Redirige a la página de inicio de sesión si no se encuentra el token.
- * @returns {object} Una instancia de Axios configurada con el token de autorización.
  */
 function getAuthAxios() {
     const token = localStorage.getItem("token");
     if (!token) {
-        console.error("No se encontró el token de autenticación.");
         Swal.fire({
             title: "No autorizado",
             text: "Por favor, inicia sesión para continuar.",
@@ -30,11 +30,9 @@ function getAuthAxios() {
     });
 }
 
-
 async function fetchData() {
     try {
-        const authAxios = getAuthAxios(); // Obtener la instancia de Axios con el token
-
+        const authAxios = getAuthAxios();
         const [usersResponse, clientsResponse, roomsResponse, statusResponse, reservationsResponse] = await Promise.all([
             authAxios.get("http://127.0.0.1:8000/api/user"),
             authAxios.get("http://127.0.0.1:8000/api/client"),
@@ -49,104 +47,87 @@ async function fetchData() {
         reservationStatuses = statusResponse.data;
         reservations = reservationsResponse.data;
 
-        populateTables();
+        currentPage = 1;
         populateSelects();
+        populateTables();
     } catch (error) {
-        console.error("Error al obtener los datos:", error); // Esto te dará detalles en la consola del navegador
+        handleApiError(error);
+    }
+}
 
-        if (error.response) {
-            // El servidor respondió con un código de estado de error (ej. 400, 403, 500)
-            if (error.response.status === 401) {
-                Swal.fire({
-                    title: "Sesión expirada o no autorizada",
-                    text: "Por favor, inicia sesión de nuevo.",
-                    icon: "warning",
-                    confirmButtonText: "Ir a Iniciar Sesión",
-                }).then(() => {
-                    window.location.href = "/index.html";
-                });
-            } else {
-                // Otros errores de respuesta del servidor (ej. 400 Bad Request, 500 Internal Server Error)
-                Swal.fire({
-                    title: "Error de la API",
-                    text: `El servidor respondió con un error ${error.response.status}: ${error.response.statusText || error.message}. Verifica la consola para más detalles.`,
-                    icon: "error",
-                    confirmButtonText: "Aceptar"
-                });
-            }
-        } else if (error.request) {
-            // La solicitud fue hecha pero no se recibió respuesta (ej. servidor caído, problema de red/CORS)
+function handleApiError(error) {
+    if (error.response) {
+        if (error.response.status === 401) {
             Swal.fire({
-                title: "Error de conexión",
-                text: "No se pudo conectar con el servidor de la API. Asegúrate de que el backend esté corriendo y sea accesible. Verifica la consola para posibles errores de CORS.",
-                icon: "error",
-                confirmButtonText: "Aceptar"
+                title: "Sesión expirada o no autorizada",
+                text: "Por favor, inicia sesión de nuevo.",
+                icon: "warning",
+                confirmButtonText: "Ir a Iniciar Sesión",
+            }).then(() => {
+                window.location.href = "/index.html";
             });
         } else {
-            // Algo más causó el error (ej. error en la configuración de la solicitud)
             Swal.fire({
-                title: "Error inesperado",
-                text: "Hubo un problema al configurar la solicitud. Verifica la consola para más detalles.",
+                title: "Error de la API",
+                text: `Error ${error.response.status}: ${error.response.statusText || error.message}.`,
                 icon: "error",
                 confirmButtonText: "Aceptar"
             });
         }
+    } else if (error.request) {
+        Swal.fire({
+            title: "Error de conexión",
+            text: "No se pudo conectar con el servidor de la API.",
+            icon: "error",
+            confirmButtonText: "Aceptar"
+        });
+    } else {
+        Swal.fire({
+            title: "Error inesperado",
+            text: "Hubo un problema al configurar la solicitud.",
+            icon: "error",
+            confirmButtonText: "Aceptar"
+        });
     }
 }
 
-
-/**
- * Rellena los selectores de los formularios con los datos obtenidos.
- */
 function populateSelects() {
     const userSelect = document.getElementById('user_id');
     const clientSelect = document.getElementById('client_id');
     const roomSelect = document.getElementById('room_id');
     const statusSelect = document.getElementById('reservation_status_id');
 
-    // Limpiar selectores antes de añadir opciones
     userSelect.innerHTML = '<option value="">Seleccionar...</option>';
     clientSelect.innerHTML = '<option value="">Seleccionar...</option>';
     roomSelect.innerHTML = '<option value="">Seleccionar...</option>';
     statusSelect.innerHTML = '<option value="">Seleccionar...</option>';
 
     users.forEach(user => {
-        const option = document.createElement('option');
-        option.value = user.id;
-        option.textContent = user.username;
-        userSelect.appendChild(option);
+        userSelect.innerHTML += `<option value="${user.id}">${user.username}</option>`;
     });
 
     clients.forEach(client => {
-        const option = document.createElement('option');
-        option.value = client.id;
-        option.textContent = `${client.first_name} ${client.last_name}`;
-        clientSelect.appendChild(option);
+        clientSelect.innerHTML += `<option value="${client.id}">${client.first_name} ${client.last_name}</option>`;
     });
 
     rooms.forEach(room => {
-        const option = document.createElement('option');
-        option.value = room.id;
-        option.textContent = `Habitación ${room.room_number}`;
-        roomSelect.appendChild(option);
+        roomSelect.innerHTML += `<option value="${room.id}">Habitación ${room.room_number}</option>`;
     });
 
     reservationStatuses.forEach(status => {
-        const option = document.createElement('option');
-        option.value = status.id;
-        option.textContent = status.name;
-        statusSelect.appendChild(option);
+        statusSelect.innerHTML += `<option value="${status.id}">${status.name}</option>`;
     });
 }
 
-/**
- * Rellena la tabla de reservas con los datos obtenidos.
- */
 function populateTables() {
     const reservationTableBody = document.getElementById('reservationTableBody');
-    reservationTableBody.innerHTML = ''; // Limpiar tabla antes de añadir filas
+    reservationTableBody.innerHTML = '';
 
-    reservations.forEach(reservation => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedReservations = reservations.slice(startIndex, endIndex);
+
+    paginatedReservations.forEach(reservation => {
         const user = users.find(u => u.id === reservation.user_id);
         const client = clients.find(c => c.id === reservation.client_id);
         const room = rooms.find(r => r.id === reservation.room_id);
@@ -169,13 +150,59 @@ function populateTables() {
         `;
         reservationTableBody.appendChild(tr);
     });
+
+    renderPagination();
 }
 
-/**
- * Abre el modal para crear una nueva reserva, reseteando los campos del formulario.
- */
+function renderPagination() {
+    const totalPages = Math.ceil(reservations.length / pageSize);
+    const paginationContainer = document.getElementById('pagination');
+    if (!paginationContainer) return;
+
+    paginationContainer.innerHTML = '';
+
+    // Botón Anterior
+    const prevItem = document.createElement('li');
+    prevItem.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    prevItem.innerHTML = `<button class="page-link" aria-label="Anterior">«</button>`;
+    prevItem.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            populateTables();
+        }
+    });
+    paginationContainer.appendChild(prevItem);
+
+    // Solo mostramos 2 botones numéricos por página
+    const startPage = Math.max(1, currentPage - 1);
+    const endPage = Math.min(totalPages, currentPage + 1);
+
+    for (let i = startPage; i <= endPage; i++) {
+        const li = document.createElement('li');
+        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        li.innerHTML = `<button class="page-link">${i}</button>`;
+        li.addEventListener('click', () => {
+            currentPage = i;
+            populateTables();
+        });
+        paginationContainer.appendChild(li);
+    }
+
+    // Botón Siguiente
+    const nextItem = document.createElement('li');
+    nextItem.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextItem.innerHTML = `<button class="page-link" aria-label="Siguiente">»</button>`;
+    nextItem.addEventListener('click', () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            populateTables();
+        }
+    });
+    paginationContainer.appendChild(nextItem);
+}
+
+
 function openReservationModal() {
-    // Limpiar todos los campos del formulario
     document.getElementById('reservationId').value = '';
     document.getElementById('client_id').value = '';
     document.getElementById('room_id').value = '';
@@ -184,51 +211,33 @@ function openReservationModal() {
     document.getElementById('check_in_date').value = '';
     document.getElementById('check_out_date').value = '';
     document.getElementById('note').value = '';
-
-    const modal = new bootstrap.Modal(document.getElementById('reservationModal'));
-    modal.show();
+    new bootstrap.Modal(document.getElementById('reservationModal')).show();
 }
 
-/**
- * Rellena el formulario del modal con los datos de una reserva existente para su edición.
- * @param {number} id El ID de la reserva a editar.
- */
 function editReservation(id) {
     const reservation = reservations.find(r => r.id === id);
-    if (reservation) {
-        document.getElementById('reservationId').value = reservation.id;
-        document.getElementById('client_id').value = reservation.client_id;
-        document.getElementById('room_id').value = reservation.room_id;
-        document.getElementById('user_id').value = reservation.user_id;
-        document.getElementById('reservation_status_id').value = reservation.reservation_status_id;
-        document.getElementById('check_in_date').value = reservation.check_in_date;
-        document.getElementById('check_out_date').value = reservation.check_out_date;
-        document.getElementById('note').value = reservation.note;
-
-        const modal = new bootstrap.Modal(document.getElementById('reservationModal'));
-        modal.show();
-    } else {
-        Swal.fire({
-            title: "Error",
-            text: "Reserva no encontrada.",
-            icon: "error",
-            confirmButtonText: "Aceptar"
-        });
+    if (!reservation) {
+        Swal.fire("Error", "Reserva no encontrada.", "error");
+        return;
     }
+
+    document.getElementById('reservationId').value = reservation.id;
+    document.getElementById('client_id').value = reservation.client_id;
+    document.getElementById('room_id').value = reservation.room_id;
+    document.getElementById('user_id').value = reservation.user_id;
+    document.getElementById('reservation_status_id').value = reservation.reservation_status_id;
+    document.getElementById('check_in_date').value = reservation.check_in_date;
+    document.getElementById('check_out_date').value = reservation.check_out_date;
+    document.getElementById('note').value = reservation.note;
+    new bootstrap.Modal(document.getElementById('reservationModal')).show();
 }
 
-/**
- * Elimina una reserva de la base de datos y actualiza la tabla.
- * @param {number} id El ID de la reserva a eliminar.
- */
 async function deleteReservation(id) {
     const result = await Swal.fire({
         title: "¿Estás seguro?",
         text: "¡No podrás revertir esto!",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
         confirmButtonText: "Sí, eliminar",
         cancelButtonText: "Cancelar"
     });
@@ -239,107 +248,61 @@ async function deleteReservation(id) {
             await authAxios.delete(`http://127.0.0.1:8000/api/reservations/${id}`);
             reservations = reservations.filter(r => r.id !== id);
             populateTables();
-            Swal.fire(
-                "¡Eliminado!",
-                "La reserva ha sido eliminada.",
-                "success"
-            );
+            Swal.fire("¡Eliminado!", "La reserva ha sido eliminada.", "success");
         } catch (error) {
             console.error("Error eliminando reserva:", error);
-            Swal.fire(
-                "Error",
-                "Error al eliminar la reserva. Consulta la consola para más detalles.",
-                "error"
-            );
+            Swal.fire("Error", "No se pudo eliminar la reserva.", "error");
         }
     }
 }
 
-/**
- * Filtra las reservas mostradas en la tabla basándose en el nombre o apellido del cliente.
- */
 function searchReservations() {
     const searchQuery = document.getElementById('searchClient').value.toLowerCase();
-    // Vuelve a cargar todos los datos para asegurar que la búsqueda se realiza sobre el conjunto completo
     fetchData().then(() => {
-        const filteredReservations = reservations.filter(reservation => {
+        reservations = reservations.filter(reservation => {
             const client = clients.find(c => c.id === reservation.client_id);
             return client && (client.first_name.toLowerCase().includes(searchQuery) || client.last_name.toLowerCase().includes(searchQuery));
         });
-        // Reemplaza las reservas con las filtradas para la visualización
-        reservations = filteredReservations;
+        currentPage = 1;
         populateTables();
     });
 }
 
-/**
- * Maneja el envío del formulario de reservas, ya sea para crear o editar una reserva.
- */
 document.getElementById('reservationForm').addEventListener('submit', async function (event) {
-    event.preventDefault(); // Previene que el formulario se envíe y recargue la página.
-
+    event.preventDefault();
     const reservationId = document.getElementById('reservationId').value;
-    const clientId = document.getElementById('client_id').value;
-    const roomId = document.getElementById('room_id').value;
-    const userId = document.getElementById('user_id').value;
-    const reservationStatusId = document.getElementById('reservation_status_id').value;
-    const checkInDate = document.getElementById('check_in_date').value;
-    const checkOutDate = document.getElementById('check_out_date').value;
-    const note = document.getElementById('note').value;
-
     const reservationData = {
-        client_id: clientId,
-        room_id: roomId,
-        reservation_status_id: reservationStatusId,
-        check_in_date: checkInDate,
-        check_out_date: checkOutDate,
-        note: note,
-        user_id: userId,
+        client_id: document.getElementById('client_id').value,
+        room_id: document.getElementById('room_id').value,
+        reservation_status_id: document.getElementById('reservation_status_id').value,
+        check_in_date: document.getElementById('check_in_date').value,
+        check_out_date: document.getElementById('check_out_date').value,
+        note: document.getElementById('note').value,
+        user_id: document.getElementById('user_id').value,
     };
 
-    const authAxios = getAuthAxios(); // Obtén la instancia de Axios con el token
+    const authAxios = getAuthAxios();
 
     try {
         if (reservationId) {
-            // Si hay ID, es una edición
             const response = await authAxios.patch(`http://127.0.0.1:8000/api/reservations/${reservationId}`, reservationData);
             const updatedReservation = response.data;
             const index = reservations.findIndex(r => r.id === updatedReservation.id);
-            if (index !== -1) {
-                reservations[index] = updatedReservation;
-            }
-            populateTables(); // Recarga las reservas en la tabla
-            document.getElementById('reservationModal').querySelector('.btn-close').click(); // Cierra el modal
-            Swal.fire(
-                "¡Actualizado!",
-                "La reserva ha sido actualizada con éxito.",
-                "success"
-            );
+            if (index !== -1) reservations[index] = updatedReservation;
         } else {
-            // Si no hay ID, es una creación
-            const response = await authAxios.post('http://127.0.0.1:8000/api/reservations/', reservationData);
-            reservations.push(response.data); // Agrega la nueva reserva
-            populateTables(); // Recarga las reservas en la tabla
-            document.getElementById('reservationModal').querySelector('.btn-close').click(); // Cierra el modal
-            Swal.fire(
-                "¡Creado!",
-                "La reserva ha sido creada con éxito.",
-                "success"
-            );
+            const response = await authAxios.post(`http://127.0.0.1:8000/api/reservations/`, reservationData);
+            reservations.push(response.data);
         }
+        document.getElementById('reservationModal').querySelector('.btn-close').click();
+        currentPage = 1;
+        populateTables();
+        Swal.fire("¡Éxito!", "La reserva fue guardada correctamente.", "success");
     } catch (error) {
         console.error('Error al guardar reserva:', error);
-        Swal.fire(
-            "Error",
-            "Hubo un error al guardar la reserva. Consulta la consola para más detalles.",
-            "error"
-        );
+        Swal.fire("Error", "No se pudo guardar la reserva.", "error");
     }
 });
 
-/**
- * Alterna la visibilidad de la barra lateral y ajusta el contenido principal.
- */
 function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
     const mainContent = document.getElementById("main-content");
@@ -347,22 +310,11 @@ function toggleSidebar() {
     mainContent.classList.toggle("main-collapsed");
 }
 
-// Llama a la función fetchData al cargar la página para inicializar los datos
 document.addEventListener('DOMContentLoaded', fetchData);
 
-// Asocia la función openReservationModal al botón de añadir (si existe)
-const addReservationButton = document.getElementById('addReservationBtn');
-if (addReservationButton) {
-    addReservationButton.addEventListener('click', openReservationModal);
-}
+document.getElementById('addReservationBtn')?.addEventListener('click', openReservationModal);
+document.getElementById('searchClient')?.addEventListener('keyup', searchReservations);
 
-// Asocia la función searchReservations al campo de búsqueda (si existe)
-const searchClientInput = document.getElementById('searchClient');
-if (searchClientInput) {
-    searchClientInput.addEventListener('keyup', searchReservations);
-}
-
-// Cerrar sesión
 document.getElementById("logoutBtn")?.addEventListener("click", () => {
     Swal.fire({
         title: "¿Cerrar sesión?",
@@ -371,19 +323,16 @@ document.getElementById("logoutBtn")?.addEventListener("click", () => {
         showCancelButton: true,
         confirmButtonText: "Sí, cerrar sesión",
         cancelButtonText: "Cancelar",
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6"
     }).then((result) => {
         if (result.isConfirmed) {
-            localStorage.removeItem("token"); // Elimina el token
+            localStorage.removeItem("token");
             Swal.fire({
                 title: "Sesión cerrada",
-                text: "Has cerrado sesión correctamente.",
                 icon: "success",
                 timer: 1500,
-                showConfirmButton: false
+                showConfirmButton: false,
             }).then(() => {
-                window.location.href = "/index.html"; // Redirige al login
+                window.location.href = "/index.html";
             });
         }
     });
