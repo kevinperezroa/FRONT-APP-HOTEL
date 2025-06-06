@@ -2,9 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const apiUrl = "https://app-reservation-hotel-web.onrender.com/api/user/";
     let users = [];
 
-    // IMPORTANTE: Necesitas una forma de obtener el ID del usuario actualmente logueado.
-    // Asumo que se almacena en localStorage después del login.
-    // Reemplaza 'loggedInUserId' con la clave real que uses para guardar el ID del usuario.
+
     const loggedInUserId = parseInt(localStorage.getItem("loggedInUserId"));
 
     const userForm = document.getElementById("userForm");
@@ -170,43 +168,45 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // Cambiar estado del usuario
-    window.toggleUserStatus = async function (id, currentStatus) {
-        // PREVENIR QUE EL USUARIO LOGUEADO SE DESACTIVE A SÍ MISMO
-        if (id === loggedInUserId && currentStatus === true) {
-            Swal.fire({
-                title: "Acción no permitida",
-                text: "No puedes desactivar tu propia cuenta mientras estás logueado.",
-                icon: "info",
-                confirmButtonText: "Entendido"
-            });
-            return; // Detener la ejecución de la función
-        }
-
-        const actionText = currentStatus ? "inactivar" : "activar";
-        const confirmButtonColor = currentStatus ? "#dc3545" : "#198754"; // Rojo para inactivar, Verde para activar
-
-        const result = await Swal.fire({
-            title: `¿Estás seguro de ${actionText} este usuario?`,
-            text: `El usuario será ${actionText === 'inactivar' ? 'marcado como inactivo' : 'activado'}.`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: `Sí, ${actionText}`,
-            cancelButtonText: "Cancelar",
-            confirmButtonColor: confirmButtonColor,
-            cancelButtonColor: "#6c757d"
+window.toggleUserStatus = async function (id, currentStatus) {
+    // PREVENIR QUE EL USUARIO LOGUEADO SE DESACTIVE A SÍ MISMO
+    if (id === loggedInUserId && currentStatus === true) {
+        Swal.fire({
+            title: "Acción no permitida",
+            text: "No puedes desactivar tu propia cuenta mientras estás logueado.",
+            icon: "info",
+            confirmButtonText: "Entendido"
         });
+        return; // Detener la ejecución de la función
+    }
 
-        if (result.isConfirmed) {
-            try {
-                const authAxios = getAuthAxios();
-                await authAxios.patch(`${apiUrl}${id}`, { active: !currentStatus });
-                Swal.fire("¡Éxito!", `El usuario ha sido ${actionText === 'inactivar' ? 'inactivado' : 'activado'} correctamente.`, "success");
-                fetchUsers(); // Re-fetch to update the table
-            } catch (error) {
-                handleAxiosError(error, "Error al cambiar el estado del usuario", `No se pudo ${actionText} el usuario.`);
-            }
+    const actionText = currentStatus ? "inactivar" : "activar";
+    const confirmButtonColor = currentStatus ? "#dc3545" : "#198754"; // Rojo para inactivar, Verde para activar
+
+    const result = await Swal.fire({
+        title: `¿Estás seguro de ${actionText} este usuario?`,
+        text: `El usuario será ${actionText === 'inactivar' ? 'marcado como inactivo' : 'activado'}.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: `Sí, ${actionText}`,
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: confirmButtonColor,
+        cancelButtonColor: "#6c757d"
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const authAxios = getAuthAxios();
+        
+            // Apunta al endpoint correcto para actualizar el estado del usuario.
+            await authAxios.patch(`${apiUrl}${id}/status`, { active: !currentStatus }); // <-- AÑADE /status
+            Swal.fire("¡Éxito!", `El usuario ha sido ${actionText === 'inactivar' ? 'inactivado' : 'activado'} correctamente.`, "success");
+            fetchUsers(); // Vuelve a cargar los usuarios para actualizar la tabla
+        } catch (error) {
+            handleAxiosError(error, "Error al cambiar el estado del usuario", `No se pudo ${actionText} el usuario.`);
         }
-    };
+    }
+};
 
     // Guardar usuario (crear o actualizar)
     userForm.addEventListener("submit", async (e) => {
