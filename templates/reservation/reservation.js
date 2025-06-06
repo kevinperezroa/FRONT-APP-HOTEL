@@ -5,7 +5,7 @@ let reservations = [];
 let users = [];
 
 let currentPage = 1;
-const pageSize = 10;
+const pageSize = 20;
 
 /**
  * Configura una instancia de Axios con el token de autenticación del localStorage.
@@ -215,12 +215,8 @@ function openReservationModal() {
 }
 
 function editReservation(id) {
-    const reservation = reservations.find(r => r.id === id);
-    if (!reservation) {
-        Swal.fire("Error", "Reserva no encontrada.", "error");
-        return;
-    }
-
+  const reservation = reservations.find(r => r.id === id);
+  if (reservation) {
     document.getElementById('reservationId').value = reservation.id;
     document.getElementById('client_id').value = reservation.client_id;
     document.getElementById('room_id').value = reservation.room_id;
@@ -229,7 +225,10 @@ function editReservation(id) {
     document.getElementById('check_in_date').value = reservation.check_in_date;
     document.getElementById('check_out_date').value = reservation.check_out_date;
     document.getElementById('note').value = reservation.note;
-    new bootstrap.Modal(document.getElementById('reservationModal')).show();
+
+    const modal = new bootstrap.Modal(document.getElementById('reservationModal'));
+    modal.show();
+  }
 }
 
 async function deleteReservation(id) {
