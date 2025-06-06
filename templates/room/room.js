@@ -44,9 +44,9 @@ async function fetchAllData() {
         const authAxios = getAuthAxios(); // Obtener la instancia de Axios con el token
 
         const [roomsRes, typesRes, statusesRes] = await Promise.all([
-            authAxios.get("http://127.0.0.1:8000/api/room?page=1&limit=100"), // Asegúrate de manejar la paginación si tu API la implementa
-            authAxios.get("http://127.0.0.1:8000/api/roomtypes/"),
-            authAxios.get("http://127.0.0.1:8000/api/roomstatus/")
+            authAxios.get("https://app-reservation-hotel-web.onrender.com/api/room?page=1&limit=100"), // Asegúrate de manejar la paginación si tu API la implementa
+            authAxios.get("https://app-reservation-hotel-web.onrender.com/api/roomtypes/"),
+            authAxios.get("https://app-reservation-hotel-web.onrender.com/api/roomstatus/")
         ]);
 
         roomsData = roomsRes.data;
@@ -254,14 +254,14 @@ async function saveRoom(event) {
         const authAxios = getAuthAxios(); // Obtener la instancia de Axios con el token
 
         if (id) {
-            await authAxios.patch(`http://127.0.0.1:8000/api/room/${id}`, roomData);
+            await authAxios.patch(`https://app-reservation-hotel-web.onrender.com/api/room/${id}`, roomData);
             Swal.fire(
                 "¡Actualizado!",
                 "La habitación ha sido actualizada con éxito.",
                 "success"
             );
         } else {
-            await authAxios.post("http://127.0.0.1:8000/api/room", roomData);
+            await authAxios.post("https://app-reservation-hotel-web.onrender.com/api/room", roomData);
             Swal.fire(
                 "¡Creado!",
                 "La habitación ha sido creada con éxito.",
@@ -320,7 +320,7 @@ async function toggleRoomStatus(id, activate) {
     if (result.isConfirmed) {
         try {
             const authAxios = getAuthAxios(); // Obtener la instancia de Axios con el token
-            await authAxios.patch(`http://127.0.0.1:8000/api/room/${id}/status`, { active: activate });
+            await authAxios.patch(`https://app-reservation-hotel-web.onrender.com/api/room/${id}/status`, { active: activate });
             Swal.fire("Éxito", successMessage, "success");
             fetchAllData(); // Vuelve a cargar los datos para reflejar el cambio de estado
         } catch (error) {

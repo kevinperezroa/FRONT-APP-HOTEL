@@ -1,4 +1,4 @@
-const apiUrl = "http://127.0.0.1:8000/api/client";
+const apiUrl = "https://app-reservation-hotel-web.onrender.com/api/client";
 const rowsPerPage = 12;
 let currentPage = 1;
 let clients = [];

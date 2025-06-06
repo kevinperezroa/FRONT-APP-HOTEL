@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const apiUrl = "http://127.0.0.1:8000/api/user/";
+    const apiUrl = "https://app-reservation-hotel-web.onrender.com/api/user/";
     let users = [];
 
     // IMPORTANTE: Necesitas una forma de obtener el ID del usuario actualmente logueado.

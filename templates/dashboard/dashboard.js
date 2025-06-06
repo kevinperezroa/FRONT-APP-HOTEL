@@ -1,5 +1,5 @@
-const apiUrl = "http://127.0.0.1:8000/api/dashboard";
-const monthlyPdfUrl = "http://127.0.0.1:8000/api/dashboard/pdf";
+const apiUrl = "https://app-reservation-hotel-web.onrender.com/api/dashboard";
+const monthlyPdfUrl = "https://app-reservation-hotel-web.onrender.com/api/dashboard/pdf";
 
 // Función para obtener el token del localStorage
 function getAuthHeaders() {

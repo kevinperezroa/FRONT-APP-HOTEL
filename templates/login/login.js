@@ -5,7 +5,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
     const password = document.getElementById("password").value;
 
     try {
-        const response = await axios.post("http://127.0.0.1:8000/api/login", {
+        const response = await axios.post("https://app-reservation-hotel-web.onrender.com/api/login", {
             username,
             password
         });
