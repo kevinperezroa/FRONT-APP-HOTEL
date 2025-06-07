@@ -168,60 +168,72 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // Cambiar estado del usuario
-window.toggleUserStatus = async function (id, currentStatus) {
-    // PREVENIR QUE EL USUARIO LOGUEADO SE DESACTIVE A SÍ MISMO
-    if (id === loggedInUserId && currentStatus === true) {
-        Swal.fire({
-            title: "Acción no permitida",
-            text: "No puedes desactivar tu propia cuenta mientras estás logueado.",
-            icon: "info",
-            confirmButtonText: "Entendido"
-        });
-        return; // Detener la ejecución de la función
-    }
-
-    const actionText = currentStatus ? "inactivar" : "activar";
-    const confirmButtonColor = currentStatus ? "#dc3545" : "#198754"; // Rojo para inactivar, Verde para activar
-
-    const result = await Swal.fire({
-        title: `¿Estás seguro de ${actionText} este usuario?`,
-        text: `El usuario será ${actionText === 'inactivar' ? 'marcado como inactivo' : 'activado'}.`,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: `Sí, ${actionText}`,
-        cancelButtonText: "Cancelar",
-        confirmButtonColor: confirmButtonColor,
-        cancelButtonColor: "#6c757d"
-    });
-
-    if (result.isConfirmed) {
-        try {
-            const authAxios = getAuthAxios();
-            // *** ¡EL CAMBIO CRÍTICO ESTÁ AQUÍ! ***
-            // Apunta al endpoint correcto para actualizar el estado del usuario.
-            await authAxios.patch(`${apiUrl}${id}/status`, { active: !currentStatus }); // <-- AÑADE /status
-            Swal.fire("¡Éxito!", `El usuario ha sido ${actionText === 'inactivar' ? 'inactivado' : 'activado'} correctamente.`, "success");
-            fetchUsers(); // Vuelve a cargar los usuarios para actualizar la tabla
-        } catch (error) {
-            handleAxiosError(error, "Error al cambiar el estado del usuario", `No se pudo ${actionText} el usuario.`);
+    window.toggleUserStatus = async function (id, currentStatus) {
+        // PREVENIR QUE EL USUARIO LOGUEADO SE DESACTIVE A SÍ MISMO
+        if (id === loggedInUserId && currentStatus === true) {
+            Swal.fire({
+                title: "Acción no permitida",
+                text: "No puedes desactivar tu propia cuenta mientras estás logueado.",
+                icon: "info",
+                confirmButtonText: "Entendido"
+            });
+            return; // Detener la ejecución de la función
         }
-    }
-};
+
+        const actionText = currentStatus ? "inactivar" : "activar";
+        const confirmButtonColor = currentStatus ? "#dc3545" : "#198754"; // Rojo para inactivar, Verde para activar
+
+        const result = await Swal.fire({
+            title: `¿Estás seguro de ${actionText} este usuario?`,
+            text: `El usuario será ${actionText === 'inactivar' ? 'marcado como inactivo' : 'activado'}.`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: `Sí, ${actionText}`,
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: confirmButtonColor,
+            cancelButtonColor: "#6c757d"
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const authAxios = getAuthAxios();
+                // Apunta al endpoint correcto para actualizar el estado del usuario.
+                await authAxios.patch(`${apiUrl}${id}/status`, { active: !currentStatus }); // <-- AÑADE /status
+                Swal.fire("¡Éxito!", `El usuario ha sido ${actionText === 'inactivar' ? 'inactivado' : 'activado'} correctamente.`, "success");
+                fetchUsers(); // Vuelve a cargar los usuarios para actualizar la tabla
+            } catch (error) {
+                handleAxiosError(error, "Error al cambiar el estado del usuario", `No se pudo ${actionText} el usuario.`);
+            }
+        }
+    };
 
     // Guardar usuario (crear o actualizar)
     userForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const id = document.getElementById("userId").value;
+        const password = document.getElementById("password").value;
         const userData = {
             username: document.getElementById("username").value,
             email: document.getElementById("email").value,
-            password: document.getElementById("password").value, // Only send if updating or creating
+            password: password, // Se evalúa antes de enviarse
             user_type_id: parseInt(document.getElementById("user_type_id").value),
         };
 
-        // Solo incluir contraseña si no está vacía (para actualizaciones) o si es un nuevo usuario
-        if (userData.password === "" && id) {
-            delete userData.password; // No enviar contraseña vacía en la actualización si no se cambió
+        // Validación: contraseña requerida para nuevos usuarios
+        if (!id && (!password || password.length < 6)) {
+            Swal.fire("Error", "La contraseña es requerida y debe tener mínimo 6 caracteres.", "error");
+            return;
+        }
+
+        // Validación: si es actualización y la contraseña fue escrita, debe tener al menos 8 caracteres
+        if (id && password && password.length < 6) {
+            Swal.fire("Error", "La contraseña debe tener mínimo 6 caracteres.", "error");
+            return;
+        }
+
+        // Si la contraseña está vacía y es actualización, no se envía
+        if (password === "" && id) {
+            delete userData.password;
         }
 
         try {
@@ -230,10 +242,6 @@ window.toggleUserStatus = async function (id, currentStatus) {
                 await authAxios.patch(`${apiUrl}${id}`, userData);
                 Swal.fire("¡Actualizado!", "Usuario actualizado correctamente.", "success");
             } else {
-                if (!userData.password) {
-                    Swal.fire("Error", "La contraseña es requerida para nuevos usuarios.", "error");
-                    return;
-                }
                 await authAxios.post(apiUrl, userData);
                 Swal.fire("¡Creado!", "Usuario creado correctamente.", "success");
             }
@@ -244,6 +252,7 @@ window.toggleUserStatus = async function (id, currentStatus) {
             handleAxiosError(error, "Error al guardar usuario", "No se pudo guardar el usuario. Verifica los datos e intenta de nuevo.");
         }
     });
+
 
     // Event listeners para filtros y búsqueda
     statusFilter.addEventListener("change", renderFilteredUsers);
@@ -263,7 +272,7 @@ window.toggleUserStatus = async function (id, currentStatus) {
     }
 
     // Función para abrir el modal de creación de usuario (limpia el formulario primero)
-    window.openUserModal = function() {
+    window.openUserModal = function () {
         userForm.reset();
         document.getElementById("userId").value = ""; // Limpiar el campo ID oculto
         passwordField.type = "password"; // Reiniciar el tipo del campo de contraseña

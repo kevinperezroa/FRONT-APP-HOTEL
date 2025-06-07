@@ -241,50 +241,56 @@ async function saveRoom(event) {
     event.preventDefault();
 
     const id = document.getElementById("roomId").value;
+    const roomNumber = document.getElementById("room_number").value.trim();
+    const pricePerNight = parseFloat(document.getElementById("price_per_night").value);
+    const capacity = parseInt(document.getElementById("capacity").value);
+    const roomTypeId = parseInt(document.getElementById("room_type_id").value);
+    const roomStatusId = parseInt(document.getElementById("room_status_id").value);
+
+    // Validaciones
+    if (!roomNumber) {
+        return Swal.fire("Campo requerido", "El número de habitación es obligatorio.", "warning");
+    }
+    if (isNaN(pricePerNight) || pricePerNight <= 0) {
+        return Swal.fire("Valor inválido", "El precio por noche debe ser un número mayor a 0.", "warning");
+    }
+    if (isNaN(capacity) || capacity <= 0) {
+        return Swal.fire("Valor inválido", "La capacidad debe ser un número entero mayor a 0.", "warning");
+    }
+    if (isNaN(roomTypeId)) {
+        return Swal.fire("Selección requerida", "Debes seleccionar un tipo de habitación.", "warning");
+    }
+    if (isNaN(roomStatusId)) {
+        return Swal.fire("Selección requerida", "Debes seleccionar un estado de habitación.", "warning");
+    }
 
     const roomData = {
-        room_number: document.getElementById("room_number").value,
-        price_per_night: parseFloat(document.getElementById("price_per_night").value),
-        capacity: parseInt(document.getElementById("capacity").value),
-        room_type_id: parseInt(document.getElementById("room_type_id").value),
-        room_status_id: parseInt(document.getElementById("room_status_id").value)
+        room_number: roomNumber,
+        price_per_night: pricePerNight,
+        capacity: capacity,
+        room_type_id: roomTypeId,
+        room_status_id: roomStatusId
     };
 
     try {
-        const authAxios = getAuthAxios(); // Obtener la instancia de Axios con el token
+        const authAxios = getAuthAxios();
 
         if (id) {
             await authAxios.patch(`https://app-reservation-hotel-web.onrender.com/api/room/${id}`, roomData);
-            Swal.fire(
-                "¡Actualizado!",
-                "La habitación ha sido actualizada con éxito.",
-                "success"
-            );
+            Swal.fire("¡Actualizado!", "La habitación ha sido actualizada con éxito.", "success");
         } else {
             await authAxios.post("https://app-reservation-hotel-web.onrender.com/api/room", roomData);
-            Swal.fire(
-                "¡Creado!",
-                "La habitación ha sido creada con éxito.",
-                "success"
-            );
+            Swal.fire("¡Creado!", "La habitación ha sido creada con éxito.", "success");
         }
 
         bootstrap.Modal.getInstance(document.getElementById("roomModal")).hide();
-        fetchAllData(); // Vuelve a cargar todos los datos para reflejar los cambios
+        fetchAllData(); // Recarga los datos actualizados
     } catch (error) {
         console.error("Error al guardar habitación:", error);
         if (error.response) {
-            Swal.fire(
-                "Error al guardar",
-                `El servidor respondió con un error ${error.response.status}: ${error.response.data.message || error.message}.`,
-                "error"
-            );
+            Swal.fire("Error al guardar", `El servidor respondió con un error ${error.response.status}: ${error.response.data.message || error.message}.`, "error");
         } else {
-            Swal.fire(
-                "Error de conexión",
-                "No se pudo guardar la habitación. Verifica tu conexión o el servidor.",
-                "error"
-            );
+            Swal.fire("Error de conexión", "No se pudo guardar la habitación. Verifica tu conexión o el servidor.", "error");
         }
     }
 }
